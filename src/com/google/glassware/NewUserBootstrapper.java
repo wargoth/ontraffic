@@ -23,14 +23,13 @@ import com.google.api.services.mirror.model.Subscription;
 import com.google.api.services.mirror.model.TimelineItem;
 import com.google.common.collect.Lists;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.logging.Logger;
 
-import javax.servlet.http.HttpServletRequest;
-
 /**
  * Utility functions used when users first authenticate with this service
- * 
+ *
  * @author Jenny Murphy - http://google.com/+JennyMurphy
  */
 public class NewUserBootstrapper {
@@ -61,15 +60,19 @@ public class NewUserBootstrapper {
       Subscription subscription =
           MirrorClient.insertSubscription(credential, WebUtil.buildUrl(req, "/notify"), userId,
               "timeline");
-      LOG.info("Bootstrapper inserted subscription " + subscription.getId() + " for user " + userId);
+      LOG.info("Bootstrapper inserted timeline subscription " + subscription.getId() + " for user " + userId);
+
+        MirrorClient.insertSubscription(credential, WebUtil.buildUrl(req, "/notify"), userId, "locations");
+
+        LOG.info("Bootstrapper inserted locations subscription " + subscription.getId() + " for user " + userId);
     } catch (GoogleJsonResponseException e) {
-      LOG.warning("Failed to create timeline subscription. Might be running on "
+      LOG.warning("Failed to create a subscription. Might be running on "
           + "localhost. Details:" + e.getDetails().toPrettyString());
     }
 
     // Send welcome timeline item
     TimelineItem timelineItem = new TimelineItem();
-    timelineItem.setText("Welcome to the Glass Java Quick Start");
+    timelineItem.setText("Welcome to the Realtime traffic situation notification app for Glass");
     timelineItem.setNotification(new NotificationConfig().setLevel("DEFAULT"));
     TimelineItem insertedItem = MirrorClient.insertTimelineItem(credential, timelineItem);
     LOG.info("Bootstrapper inserted welcome message " + insertedItem.getId() + " for user "

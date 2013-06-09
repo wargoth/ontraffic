@@ -3,3 +3,12 @@
 # Package Files #
 *.war
 *.ear
+web/WEB-INF/lib
+.idea
+web/WEB-INF/appengine-generated/
+.settings
+.project
+.classpath
+target/
+out
+*.iml
