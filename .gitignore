@@ -6,6 +6,7 @@
 web/WEB-INF/lib
 .idea
 web/WEB-INF/appengine-generated/
+web/WEB-INF/classes
 .settings
 .project
 .classpath

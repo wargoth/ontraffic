@@ -20,8 +20,7 @@ import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson.JacksonFactory;
 import com.google.api.services.mirror.Mirror;
 import com.google.api.services.mirror.model.*;
-import com.google.common.collect.Lists;
-import com.google.glassware.model.MyLocation;
+import com.google.glassware.model.UserLastLocation;
 import com.google.gson.Gson;
 
 import javax.servlet.ServletException;
@@ -125,15 +124,15 @@ public class NotifyServlet extends HttpServlet {
         Mirror glass = MirrorClient.getMirror(credential);
         // item id is usually 'latest'
         Location location = glass.locations().get(notification.getItemId()).execute();
+        LOG.info("Current location is " + location.getLatitude() + ", " + location.getLongitude());
 
-        MyLocation newLocation = new MyLocation(location);
+        UserLastLocation newLocation = new UserLastLocation(notification.getUserToken(), location);
 
-        Gson gson = new Gson();
-        String locationJson = (String) request.getSession().getAttribute("lastLocation");
-        MyLocation lastLocation = gson.fromJson(locationJson, MyLocation.class);
-        request.getSession().setAttribute("lastLocation", gson.toJson(newLocation));
+        UserLastLocation lastLocation = Database.getUserLastLocation(notification.getUserToken());
+        Database.saveUserLastLocation(newLocation);
 
         if (lastLocation == null) {
+            LOG.info("Last location was not set, exiting");
             return;
         }
 
@@ -158,12 +157,12 @@ public class NotifyServlet extends HttpServlet {
         return (int) (kmph * 1.60934);
     }
 
-    private double getSpeedKmph(MyLocation a, MyLocation b) {
+    private double getSpeedKmph(UserLastLocation a, UserLastLocation b) {
         final int R = 6371; // km or 3,959 miles
-        double distance = Math.acos(Math.sin(a.lat) * Math.sin(b.lat) +
-                Math.cos(a.lat) * Math.cos(b.lat) *
-                        Math.cos(b.lon - a.lon)) * R;
-        long time = Math.abs(a.date.getTime() - b.date.getTime());
+        double distance = Math.acos(Math.sin(a.getLat()) * Math.sin(b.getLat()) +
+                Math.cos(a.getLat()) * Math.cos(b.getLat()) *
+                        Math.cos(b.getLon() - a.getLon())) * R;
+        long time = Math.abs(a.getDate().getTime() - b.getDate().getTime()) * 1000;
 
         return distance / time;
     }
