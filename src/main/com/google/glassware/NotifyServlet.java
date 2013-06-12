@@ -21,7 +21,6 @@ import com.google.api.client.json.jackson.JacksonFactory;
 import com.google.api.services.mirror.Mirror;
 import com.google.api.services.mirror.model.*;
 import com.google.glassware.model.UserLastLocation;
-import com.google.gson.Gson;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -157,13 +156,28 @@ public class NotifyServlet extends HttpServlet {
         return (int) (kmph * 1.60934);
     }
 
-    private double getSpeedKmph(UserLastLocation a, UserLastLocation b) {
-        final int R = 6371; // km or 3,959 miles
-        double distance = Math.acos(Math.sin(a.getLat()) * Math.sin(b.getLat()) +
-                Math.cos(a.getLat()) * Math.cos(b.getLat()) *
-                        Math.cos(b.getLon() - a.getLon())) * R;
-        long time = Math.abs(a.getDate().getTime() - b.getDate().getTime()) * 1000;
+    static double getSpeedKmph(UserLastLocation a, UserLastLocation b) {
+        double distance = getDistanceKm(a, b);
+        double hours = Math.abs(a.getDate().getTime() - b.getDate().getTime()) / 1000.0 / 3600.0;
 
-        return distance / time;
+        LOG.info("Distance is: " + distance);
+        LOG.info("Time: " + hours);
+
+        return distance / hours;
     }
+
+    static double getDistanceKm(UserLastLocation a, UserLastLocation b) {
+        final double R = 6371.0; // km or 3,959 miles
+
+        double dLat = Math.toRadians(b.getLat() - a.getLat());
+        double dLon = Math.toRadians(b.getLon() - a.getLon());
+
+        double latA = Math.toRadians(a.getLat());
+        double latB = Math.toRadians(b.getLat());
+        double c = Math.sin(dLat / 2.0) * Math.sin(dLat / 2.0) +
+                Math.sin(dLon / 2.0) * Math.sin(dLon / 2.0) * Math.cos(latA) * Math.cos(latB);
+
+        return R * 2.0 * Math.atan2(Math.sqrt(c), Math.sqrt(1.0 - c));
+    }
+
 }
