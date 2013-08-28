@@ -21,6 +21,7 @@ import com.google.api.client.json.jackson.JacksonFactory;
 import com.google.api.services.mirror.Mirror;
 import com.google.api.services.mirror.model.*;
 import com.google.glassware.model.LogRecord;
+import com.google.glassware.model.NearLog;
 import com.google.glassware.model.UserLastLocation;
 
 import javax.servlet.ServletException;
@@ -29,6 +30,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -39,8 +41,8 @@ import java.util.logging.Logger;
  */
 public class NotifyServlet extends HttpServlet {
     private static final Logger LOG = Logger.getLogger(MainServlet.class.getSimpleName());
-    public static final int SPEED_THRESHOLD = 20;
-    public static final int DISTANCE_THRESHOLD = 20;
+    public static final int SPEED_THRESHOLD = 0; // in km/h
+    public static final int DISTANCE_THRESHOLD = 20; // in km
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
@@ -153,7 +155,8 @@ public class NotifyServlet extends HttpServlet {
     private void onDriving(Credential credential, Location location, double speed) throws IOException {
         LOG.info("Driving detected");
 
-        List<LogRecord> log = getNearestLogs(location);
+        List<NearLog> nearestLogs = getNearestLogs(location);
+        List<NearLog> log = nearestLogs.subList(0, Math.min(5, nearestLogs.size()));
 
         StringBuilder html = new StringBuilder();
 
@@ -161,19 +164,20 @@ public class NotifyServlet extends HttpServlet {
                 .append("<section>")
                 .append("<ul class=\"text-x-small\">");
 
-        for (LogRecord logRecord : log) {
-
+        for (NearLog logRecord : log) {
             html.append("<li>")
-                    .append(logRecord.getLocation())
+                    .append(toMiles(logRecord.getDistance()) + "mi")
                     .append(" ")
-                    .append(logRecord.getLocationDesc())
+                    .append(logRecord.getLogRecord().getLocation())
+                    .append(" ")
+                    .append(logRecord.getLogRecord().getLocationDesc())
                     .append("</li>");
 
         }
         html.append("</ul>" +
                 "</section>" +
                 "<footer>" +
-                "<p>Grocery list</p>" +
+                "<p>on-traffic</p>" +
                 "</footer>" +
                 "</article>");
 
@@ -184,26 +188,37 @@ public class NotifyServlet extends HttpServlet {
                         .setNotification(new NotificationConfig().setLevel("DEFAULT")).setLocation(location));
     }
 
-    private List<LogRecord> getNearestLogs(Location location) {
+    private List<NearLog> getNearestLogs(Location location) {
         List<LogRecord> logRecords = Database.getLogRecords();
         double aLat = location.getLatitude();
         double aLon = location.getLongitude();
 
-        List<LogRecord> result = new ArrayList<LogRecord>();
+        List<NearLog> result = new ArrayList<>();
 
         for (LogRecord logRecord : logRecords) {
             double distance = getDistance(aLat, aLon, logRecord.getLat(), logRecord.getLon());
             if (distance > DISTANCE_THRESHOLD)
                 continue;
 
-            result.add(logRecord);
+
+            NearLog nearLog = new NearLog();
+            nearLog.setDistance(distance);
+            nearLog.setLogRecord(logRecord);
+            result.add(nearLog);
         }
+
+        Collections.sort(result);
+        Collections.reverse(result);
 
         return result;
     }
 
     private int toMPH(double kmph) {
         return (int) (kmph / 1.60934);
+    }
+
+    private float toMiles(double km) {
+        return Math.round(km * 10f / 1.60934f) / 10f;
     }
 
     static double getSpeedKmph(UserLastLocation a, UserLastLocation b) {

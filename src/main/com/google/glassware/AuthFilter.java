@@ -66,6 +66,12 @@ public class AuthFilter implements Filter {
         return;
       }
 
+      if (httpRequest.getRequestURI().equals("/trafficService/update")) {
+        LOG.info("Skipping auth check for cron task");
+        filterChain.doFilter(request, response);
+        return;
+      }
+
       LOG.fine("Checking to see if anyone is logged in");
       if (AuthUtil.getUserId(httpRequest) == null
           || AuthUtil.getCredential(AuthUtil.getUserId(httpRequest)) == null

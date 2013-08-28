@@ -4,12 +4,14 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import javax.jdo.annotations.PersistenceCapable;
 import javax.jdo.annotations.Persistent;
 import javax.jdo.annotations.PrimaryKey;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+@PersistenceCapable
 public class LogRecord {
     public final static SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd yyyy h:mmaa");
 
@@ -48,28 +50,41 @@ public class LogRecord {
             Node item = childNodes.item(i);
 
             final String nodeName = item.getNodeName().toLowerCase();
-            if (nodeName.equals("logtime")) {
-                String textContent = item.getTextContent();
-                textContent = removeQuotes(textContent);
-                logTime = dateFormat.parse(textContent);
-            } else if (nodeName.equals("logtype")) {
-                String textContent = item.getTextContent();
-                logType = removeQuotes(textContent);
-            } else if (nodeName.equals("location")) {
-                String textContent = item.getTextContent();
-                location = removeQuotes(textContent);
-            } else if (nodeName.equals("locationdesc")) {
-                String textContent = item.getTextContent();
-                locationDesc = removeQuotes(textContent);
-            } else if (nodeName.equals("area")) {
-                String textContent = item.getTextContent();
-                area = removeQuotes(textContent);
-            } else if (nodeName.equals("latlon")) {
-                String textContent = item.getTextContent();
-                String latlon = removeQuotes(textContent);
-                String[] split = latlon.split(":");
-                lat = Double.parseDouble(split[0]) / 1000000d;
-                lon = -Double.parseDouble(split[1]) / 1000000d;
+            switch (nodeName) {
+                case "logtime": {
+                    String textContent = item.getTextContent();
+                    textContent = removeQuotes(textContent);
+                    logTime = dateFormat.parse(textContent);
+                    break;
+                }
+                case "logtype": {
+                    String textContent = item.getTextContent();
+                    logType = removeQuotes(textContent);
+                    break;
+                }
+                case "location": {
+                    String textContent = item.getTextContent();
+                    location = removeQuotes(textContent);
+                    break;
+                }
+                case "locationdesc": {
+                    String textContent = item.getTextContent();
+                    locationDesc = removeQuotes(textContent);
+                    break;
+                }
+                case "area": {
+                    String textContent = item.getTextContent();
+                    area = removeQuotes(textContent);
+                    break;
+                }
+                case "latlon": {
+                    String textContent = item.getTextContent();
+                    String latlon = removeQuotes(textContent);
+                    String[] split = latlon.split(":");
+                    lat = Double.parseDouble(split[0]) / 1000000d;
+                    lon = -Double.parseDouble(split[1]) / 1000000d;
+                    break;
+                }
             }
         }
     }
