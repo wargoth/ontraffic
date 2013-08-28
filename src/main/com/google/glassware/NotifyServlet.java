@@ -193,7 +193,7 @@ public class NotifyServlet extends HttpServlet {
         double aLat = location.getLatitude();
         double aLon = location.getLongitude();
 
-        List<NearLog> result = new ArrayList<>();
+        List<NearLog> result = new ArrayList<NearLog>();
 
         for (LogRecord logRecord : logRecords) {
             double distance = getDistance(aLat, aLon, logRecord.getLat(), logRecord.getLon());
