@@ -153,7 +153,7 @@ public class NotifyServlet extends HttpServlet {
     }
 
     private int toMPH(double kmph) {
-        return (int) (kmph * 1.60934);
+        return (int) (kmph / 1.60934);
     }
 
     static double getSpeedKmph(UserLastLocation a, UserLastLocation b) {
