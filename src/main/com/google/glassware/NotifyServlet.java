@@ -20,6 +20,7 @@ import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson.JacksonFactory;
 import com.google.api.services.mirror.Mirror;
 import com.google.api.services.mirror.model.*;
+import com.google.glassware.model.LogRecord;
 import com.google.glassware.model.UserLastLocation;
 
 import javax.servlet.ServletException;
@@ -27,6 +28,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 
 /**
@@ -36,6 +39,8 @@ import java.util.logging.Logger;
  */
 public class NotifyServlet extends HttpServlet {
     private static final Logger LOG = Logger.getLogger(MainServlet.class.getSimpleName());
+    public static final int SPEED_THRESHOLD = 20;
+    public static final int DISTANCE_THRESHOLD = 20;
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
@@ -128,7 +133,7 @@ public class NotifyServlet extends HttpServlet {
         UserLastLocation newLocation = new UserLastLocation(notification.getUserToken(), location);
 
         UserLastLocation lastLocation = Database.getUserLastLocation(notification.getUserToken());
-        Database.saveUserLastLocation(newLocation);
+        Database.persist(newLocation);
 
         if (lastLocation == null) {
             LOG.info("Last location was not set, exiting");
@@ -140,16 +145,61 @@ public class NotifyServlet extends HttpServlet {
 
         LOG.info("Current speed is " + speed);
 
-        if (speed > 30) {
-            LOG.info("Driving detected");
+        if (speed > SPEED_THRESHOLD) {
+            onDriving(credential, location, speed);
+        }
+    }
 
-            MirrorClient.insertTimelineItem(
-                    credential,
-                    new TimelineItem()
-                            .setText("You are driving! Your speed: " + toMPH(speed))
-                            .setNotification(new NotificationConfig().setLevel("DEFAULT")).setLocation(location));
+    private void onDriving(Credential credential, Location location, double speed) throws IOException {
+        LOG.info("Driving detected");
+
+        List<LogRecord> log = getNearestLogs(location);
+
+        StringBuilder html = new StringBuilder();
+
+        html.append("<article>")
+                .append("<section>")
+                .append("<ul class=\"text-x-small\">");
+
+        for (LogRecord logRecord : log) {
+
+            html.append("<li>")
+                    .append(logRecord.getLocation())
+                    .append(" ")
+                    .append(logRecord.getLocationDesc())
+                    .append("</li>");
+
+        }
+        html.append("</ul>" +
+                "</section>" +
+                "<footer>" +
+                "<p>Grocery list</p>" +
+                "</footer>" +
+                "</article>");
+
+        MirrorClient.insertTimelineItem(
+                credential,
+                new TimelineItem()
+                        .setHtml(html.toString())
+                        .setNotification(new NotificationConfig().setLevel("DEFAULT")).setLocation(location));
+    }
+
+    private List<LogRecord> getNearestLogs(Location location) {
+        List<LogRecord> logRecords = Database.getLogRecords();
+        double aLat = location.getLatitude();
+        double aLon = location.getLongitude();
+
+        List<LogRecord> result = new ArrayList<LogRecord>();
+
+        for (LogRecord logRecord : logRecords) {
+            double distance = getDistance(aLat, aLon, logRecord.getLat(), logRecord.getLon());
+            if (distance > DISTANCE_THRESHOLD)
+                continue;
+
+            result.add(logRecord);
         }
 
+        return result;
     }
 
     private int toMPH(double kmph) {
@@ -167,13 +217,17 @@ public class NotifyServlet extends HttpServlet {
     }
 
     static double getDistanceKm(UserLastLocation a, UserLastLocation b) {
+        return getDistance(a.getLat(), a.getLon(), b.getLat(), b.getLon());
+    }
+
+    private static double getDistance(double aLat, double aLon, double bLat, double bLon) {
         final double R = 6371.0; // km or 3,959 miles
 
-        double dLat = Math.toRadians(b.getLat() - a.getLat());
-        double dLon = Math.toRadians(b.getLon() - a.getLon());
+        double dLat = Math.toRadians(bLat - aLat);
+        double dLon = Math.toRadians(bLon - aLon);
 
-        double latA = Math.toRadians(a.getLat());
-        double latB = Math.toRadians(b.getLat());
+        double latA = Math.toRadians(aLat);
+        double latB = Math.toRadians(bLat);
         double c = Math.sin(dLat / 2.0) * Math.sin(dLat / 2.0) +
                 Math.sin(dLon / 2.0) * Math.sin(dLon / 2.0) * Math.cos(latA) * Math.cos(latB);
 

@@ -77,6 +77,15 @@ limitations under the License.
   </servlet-mapping>
 
 
+    <servlet>
+        <servlet-name>trafficService</servlet-name>
+        <servlet-class>com.google.glassware.TrafficService</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>trafficService</servlet-name>
+        <url-pattern>/trafficService/update</url-pattern>
+    </servlet-mapping>
+
   <welcome-file-list>
     <welcome-file>index.jsp</welcome-file>
   </welcome-file-list>
