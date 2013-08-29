@@ -42,10 +42,18 @@ public class AuthFilter implements Filter {
       HttpServletRequest httpRequest = (HttpServletRequest) request;
       HttpServletResponse httpResponse = (HttpServletResponse) response;
 
+        if (httpRequest.getRequestURI().equals("/cron/trafficService")) {
+            LOG.info("Skipping auth check for cron task");
+            filterChain.doFilter(request, response);
+            return;
+        }
+
       // Redirect to https when on App Engine since subscriptions only work over
       // https
       if (httpRequest.getServerName().contains("appspot.com")
           && httpRequest.getScheme().equals("http")) {
+
+          LOG.info("Redirecting to https");
 
         httpResponse.sendRedirect(httpRequest.getRequestURL().toString()
             .replaceFirst("http", "https"));
@@ -62,12 +70,6 @@ public class AuthFilter implements Filter {
       // Is this a robot visit to the notify servlet? If so skip check
       if (httpRequest.getRequestURI().equals("/notify")) {
         LOG.info("Skipping auth check for notify servlet");
-        filterChain.doFilter(request, response);
-        return;
-      }
-
-      if (httpRequest.getRequestURI().equals("/trafficService/update")) {
-        LOG.info("Skipping auth check for cron task");
         filterChain.doFilter(request, response);
         return;
       }

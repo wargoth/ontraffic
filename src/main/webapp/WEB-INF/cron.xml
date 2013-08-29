@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <cronentries>
     <cron>
-        <url>/trafficService/update</url>
+        <url>/cron/trafficService</url>
         <description>Update traffic information</description>
         <schedule>every 5 minutes</schedule>
     </cron>
