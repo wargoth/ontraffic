@@ -41,7 +41,7 @@ import java.util.logging.Logger;
  */
 public class NotifyServlet extends HttpServlet {
     private static final Logger LOG = Logger.getLogger(MainServlet.class.getSimpleName());
-    public static final int SPEED_THRESHOLD = 0; // in km/h
+    public static final int SPEED_THRESHOLD = 20; // in km/h
     public static final int DISTANCE_THRESHOLD = 20; // in km
 
     @Override

@@ -3,10 +3,10 @@
 # Package Files #
 *.war
 *.ear
-web/WEB-INF/lib
+src/main/webapp/WEB-INF/lib/
+src/main/webapp/WEB-INF/classes/
 .idea
-web/WEB-INF/appengine-generated/
-web/WEB-INF/classes
+src/main/webapp/WEB-INF/appengine-generated/
 .settings
 .project
 .classpath

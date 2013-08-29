@@ -2,6 +2,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
   <modelVersion>4.0.0</modelVersion>
+  <packaging>war</packaging>
   <groupId>com.yavalek</groupId>
   <artifactId>ontraffic</artifactId>
   <version>0.1-SNAPSHOT</version>
@@ -107,7 +108,7 @@
   <build>
     <sourceDirectory>src/main</sourceDirectory>
     <testSourceDirectory>src/test</testSourceDirectory>
-    <outputDirectory>web/WEB-INF/classes</outputDirectory>
+    <outputDirectory>src/main/webapp/WEB-INF/classes</outputDirectory>
 
 
     <plugins>
@@ -120,7 +121,7 @@
               <goal>copy-dependencies</goal>
             </goals>
             <configuration>
-              <outputDirectory>web/WEB-INF/lib</outputDirectory>
+              <outputDirectory>src/main/webapp/WEB-INF/lib</outputDirectory>
             </configuration>
           </execution>
         </executions>
@@ -167,6 +168,12 @@
                     </goals>
                 </execution>
             </executions>
+        </plugin>
+
+        <plugin>
+            <groupId>com.google.appengine</groupId>
+            <artifactId>appengine-maven-plugin</artifactId>
+            <version>1.8.3</version>
         </plugin>
 
     </plugins>
