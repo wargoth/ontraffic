@@ -133,7 +133,7 @@
         <configuration>
           <filesets>
             <fileset>
-              <directory>web/WEB-INF/lib</directory>
+              <directory>src/main/webapp/WEB-INF/lib</directory>
               <includes>
                 <include>**/*.jar</include>
               </includes>
