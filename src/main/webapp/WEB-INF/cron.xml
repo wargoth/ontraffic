@@ -3,6 +3,6 @@
     <cron>
         <url>/cron/trafficService</url>
         <description>Update traffic information</description>
-        <schedule>every 5 minutes</schedule>
+        <schedule>every 10 minutes</schedule>
     </cron>
 </cronentries>
