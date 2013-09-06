@@ -31,11 +31,27 @@ public class Database {
         }
     }
 
-    public static void persistAll(Collection someObject) {
+    public static void persistAll(Collection collection) {
+        if (collection.isEmpty())
+            return;
+
         PersistenceManager pm = PMF.get().getPersistenceManager();
 
         try {
-            pm.makePersistentAll(someObject);
+            pm.makePersistentAll(collection);
+        } finally {
+            pm.close();
+        }
+    }
+
+    public static void deleteAll(Collection collection) {
+        if (collection.isEmpty())
+            return;
+
+        PersistenceManager pm = PMF.get().getPersistenceManager();
+
+        try {
+            pm.deletePersistentAll(collection);
         } finally {
             pm.close();
         }

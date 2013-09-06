@@ -70,9 +70,17 @@
         <url-pattern>/cron/trafficService</url-pattern>
     </servlet-mapping>
 
+    <servlet>
+        <servlet-name>cleanupService</servlet-name>
+        <servlet-class>com.google.glassware.CleanupService</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>cleanupService</servlet-name>
+        <url-pattern>/cron/cleanup</url-pattern>
+    </servlet-mapping>
+
     <security-constraint>
         <web-resource-collection>
-            <web-resource-name>trafficService</web-resource-name>
             <url-pattern>/cron/*</url-pattern>
         </web-resource-collection>
         <auth-constraint>

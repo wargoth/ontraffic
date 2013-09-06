@@ -5,4 +5,11 @@
         <description>Update traffic information</description>
         <schedule>every 10 minutes</schedule>
     </cron>
+    <!--<cron>-->
+        <!--<url>/cron/cleanup</url>-->
+        <!--<description>Database cleanup</description>-->
+        <!--<schedule>every 5 minutes</schedule>-->
+        <!--<timezone>America/Los_Angeles</timezone>-->
+        <!--<schedule>every day from 00:00 to 02:00</schedule>-->
+    <!--</cron>-->
 </cronentries>

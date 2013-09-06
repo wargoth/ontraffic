@@ -42,9 +42,13 @@ public class LogRecord {
     @Persistent
     private String details;
 
-    public void parse(Node log) throws ParseException {
-        NodeList childNodes = log.getChildNodes();
-        id = ((Element) childNodes).getAttribute("ID");
+    @Persistent
+    private Date lastUpdated;
+
+    public void parse(Node logRecord) throws ParseException {
+        NodeList childNodes = logRecord.getChildNodes();
+        Element childNodesE = (Element) childNodes;
+        id = childNodesE.getAttribute("ID");
 
         for (int i = 0; i < childNodes.getLength(); i++) {
             Node item = childNodes.item(i);
@@ -72,6 +76,25 @@ public class LogRecord {
                 String[] split = latlon.split(":");
                 lat = Double.parseDouble(split[0]) / 1000000d;
                 lon = -Double.parseDouble(split[1]) / 1000000d;
+            }
+        }
+        parseLastUpdated(childNodesE.getElementsByTagName("DetailTime"));
+        parseLastUpdated(childNodesE.getElementsByTagName("UnitTime"));
+    }
+
+    private void parseLastUpdated(NodeList updateTimes) throws ParseException {
+        if (updateTimes == null)
+            return;
+
+        for (int i = 0; i < updateTimes.getLength(); i++) {
+            Node item = updateTimes.item(i);
+
+            String textContent = item.getTextContent();
+            textContent = removeQuotes(textContent);
+
+            Date updated = dateFormat.parse(textContent);
+            if (lastUpdated == null || lastUpdated.before(updated)) {
+                lastUpdated = updated;
             }
         }
     }
@@ -150,5 +173,13 @@ public class LogRecord {
 
     public void setDetails(String details) {
         this.details = details;
+    }
+
+    public void setLastUpdated(Date lastUpdated) {
+        this.lastUpdated = lastUpdated;
+    }
+
+    public Date getLastUpdated() {
+        return lastUpdated;
     }
 }

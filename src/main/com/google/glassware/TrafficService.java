@@ -34,6 +34,8 @@ public class TrafficService extends HttpServlet {
 
             List<LogRecord> logRecords = update();
 
+            LOG.info("Traffic records collected: " + logRecords.size());
+
             Database.persistAll(logRecords);
         } catch (ParserConfigurationException e) {
             LOG.log(Level.SEVERE, e.getMessage(), e);
