@@ -15,20 +15,32 @@
  */
 package com.google.glassware;
 
+import com.beoui.geocell.GeocellManager;
+import com.beoui.geocell.model.GeocellQuery;
+import com.beoui.geocell.model.Point;
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson.JacksonFactory;
 import com.google.api.services.mirror.Mirror;
-import com.google.api.services.mirror.model.*;
+import com.google.api.services.mirror.model.Location;
+import com.google.api.services.mirror.model.Notification;
+import com.google.api.services.mirror.model.NotificationConfig;
+import com.google.api.services.mirror.model.TimelineItem;
+import com.google.api.services.mirror.model.UserAction;
 import com.google.glassware.model.LogRecord;
 import com.google.glassware.model.NearLog;
 import com.google.glassware.model.UserLastLocation;
 
+import javax.jdo.PersistenceManager;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -43,6 +55,7 @@ public class NotifyServlet extends HttpServlet {
     private static final Logger LOG = Logger.getLogger(MainServlet.class.getSimpleName());
     public static final int SPEED_THRESHOLD = 20; // in km/h
     public static final int DISTANCE_THRESHOLD = 20; // in km
+    public static final int MAX_NEARBY_LOGS = 5;
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
@@ -156,7 +169,6 @@ public class NotifyServlet extends HttpServlet {
         LOG.info("Driving detected");
 
         List<NearLog> nearestLogs = getNearestLogs(location);
-        List<NearLog> log = nearestLogs.subList(0, Math.min(5, nearestLogs.size()));
 
         StringBuilder html = new StringBuilder();
 
@@ -164,9 +176,8 @@ public class NotifyServlet extends HttpServlet {
                 .append("<section>")
                 .append("<ul class=\"text-x-small\">");
 
-        for (NearLog logRecord : log) {
-            html.append("<li>")
-                    .append(toMiles(logRecord.getDistance()) + "mi")
+        for (NearLog logRecord : nearestLogs) {
+            html.append("<li>").append(toMiles(logRecord.getDistance())).append("mi")
                     .append(" ")
                     .append(logRecord.getLogRecord().getLocation())
                     .append(" ")
@@ -189,17 +200,21 @@ public class NotifyServlet extends HttpServlet {
     }
 
     private List<NearLog> getNearestLogs(Location location) {
-        List<LogRecord> logRecords = Database.getLogRecords();
+        Point center = new Point(location.getLatitude(), location.getLongitude());
+
+
+        PersistenceManager pm = PMF.get().getPersistenceManager();
+
+        GeocellQuery baseQuery = new GeocellQuery();
+        List<LogRecord> logRecords = GeocellManager.proximitySearch(center, MAX_NEARBY_LOGS, DISTANCE_THRESHOLD * 1000, LogRecord.class, baseQuery, pm);
+
         double aLat = location.getLatitude();
         double aLon = location.getLongitude();
 
-        List<NearLog> result = new ArrayList<NearLog>();
+        List<NearLog> result = new ArrayList<>();
 
         for (LogRecord logRecord : logRecords) {
             double distance = getDistance(aLat, aLon, logRecord.getLat(), logRecord.getLon());
-            if (distance > DISTANCE_THRESHOLD)
-                continue;
-
 
             NearLog nearLog = new NearLog();
             nearLog.setDistance(distance);

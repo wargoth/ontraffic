@@ -13,6 +13,11 @@
       <name>maven-gae-plugin repository</name>
       <url>http://maven-gae-plugin.googlecode.com/svn/repository</url>
     </repository>
+      <repository>
+          <id>javageomodel-repo</id>
+          <name>GeocellJava Repository</name>
+          <url>http://javageomodel.googlecode.com/svn/repository</url>
+      </repository>
   </repositories>
 
   <dependencies>
@@ -103,6 +108,11 @@
           <version>4.8.2</version>
       </dependency>
 
+      <dependency>
+          <groupId>com.beoui</groupId>
+          <artifactId>geocell</artifactId>
+          <version>0.0.8</version>
+      </dependency>
   </dependencies>
 
   <build>

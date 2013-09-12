@@ -1,5 +1,10 @@
 package com.google.glassware.model;
 
+import com.beoui.geocell.GeocellManager;
+import com.beoui.geocell.annotations.Geocells;
+import com.beoui.geocell.annotations.Latitude;
+import com.beoui.geocell.annotations.Longitude;
+import com.beoui.geocell.model.Point;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -10,6 +15,7 @@ import javax.jdo.annotations.PrimaryKey;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
 @PersistenceCapable
 public class LogRecord {
@@ -34,16 +40,22 @@ public class LogRecord {
     private String area;
 
     @Persistent
+    @Latitude
     private double lat;
 
     @Persistent
+    @Longitude
     private double lon;
 
     @Persistent
     private String details;
 
     @Persistent
-    private Date lastUpdated;
+    private Date lastUpdated = new Date();
+
+    @Persistent
+    @Geocells
+    private List<String> geocells;
 
     public void parse(Node logRecord) throws ParseException {
         NodeList childNodes = logRecord.getChildNodes();
@@ -76,33 +88,9 @@ public class LogRecord {
                 String[] split = latlon.split(":");
                 lat = Double.parseDouble(split[0]) / 1000000d;
                 lon = -Double.parseDouble(split[1]) / 1000000d;
-            } else if (nodeName.equals("logtime")) {
-                String textContent = item.getTextContent();
-                textContent = removeQuotes(textContent);
 
-                Date updated = dateFormat.parse(textContent);
-                if (lastUpdated == null || lastUpdated.before(updated)) {
-                    lastUpdated = updated;
-                }
-            }
-        }
-        parseLastUpdated(childNodesE.getElementsByTagName("DetailTime"));
-        parseLastUpdated(childNodesE.getElementsByTagName("UnitTime"));
-    }
-
-    private void parseLastUpdated(NodeList updateTimes) throws ParseException {
-        if (updateTimes == null)
-            return;
-
-        for (int i = 0; i < updateTimes.getLength(); i++) {
-            Node item = updateTimes.item(i);
-
-            String textContent = item.getTextContent();
-            textContent = removeQuotes(textContent);
-
-            Date updated = dateFormat.parse(textContent);
-            if (lastUpdated == null || lastUpdated.before(updated)) {
-                lastUpdated = updated;
+                Point p = new Point(lat, lon);
+                geocells = GeocellManager.generateGeoCell(p);
             }
         }
     }
@@ -189,5 +177,13 @@ public class LogRecord {
 
     public Date getLastUpdated() {
         return lastUpdated;
+    }
+
+    public List<String> getGeocells() {
+        return geocells;
+    }
+
+    public void setGeocells(List<String> geocells) {
+        this.geocells = geocells;
     }
 }
