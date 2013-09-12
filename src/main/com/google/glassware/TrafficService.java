@@ -25,6 +25,7 @@ public class TrafficService extends HttpServlet {
     private static final Logger LOG = Logger.getLogger(TrafficService.class.getSimpleName());
 
     private static final long serialVersionUID = 447409731553098042L;
+    public static final String DATA_URL = "http://media.chp.ca.gov/sa_xml/sa.xml";
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -50,7 +51,7 @@ public class TrafficService extends HttpServlet {
     }
 
     public List<LogRecord> update() throws IOException, ParserConfigurationException, SAXException, ParseException {
-        URL url = new URL("http://media.chp.ca.gov/sa_xml/sa.xml");
+        URL url = new URL(DATA_URL);
 
         DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
         dbFactory.setNamespaceAware(false);

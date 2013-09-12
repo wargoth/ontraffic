@@ -76,6 +76,14 @@ public class LogRecord {
                 String[] split = latlon.split(":");
                 lat = Double.parseDouble(split[0]) / 1000000d;
                 lon = -Double.parseDouble(split[1]) / 1000000d;
+            } else if (nodeName.equals("logtime")) {
+                String textContent = item.getTextContent();
+                textContent = removeQuotes(textContent);
+
+                Date updated = dateFormat.parse(textContent);
+                if (lastUpdated == null || lastUpdated.before(updated)) {
+                    lastUpdated = updated;
+                }
             }
         }
         parseLastUpdated(childNodesE.getElementsByTagName("DetailTime"));
