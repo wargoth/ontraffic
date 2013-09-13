@@ -25,12 +25,12 @@
     <dependency>
       <groupId>com.google.api-client</groupId>
       <artifactId>google-api-client-appengine</artifactId>
-      <version>1.14.1-beta</version>
+      <version>1.15.0-rc</version>
     </dependency>
     <dependency>
       <groupId>com.google.apis</groupId>
       <artifactId>google-api-services-mirror</artifactId>
-      <version>v1-rev2-1.14.1-beta</version>
+      <version>v1-rev20-1.16.0-rc</version>
     </dependency>
 
     <!-- App Engine -->
