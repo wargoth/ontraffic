@@ -192,7 +192,7 @@ public class NotifyServlet extends HttpServlet {
 
 
             read.append(miles)
-                    .append(" miles away ")
+                    .append(" miles away: ")
                     .append(loc)
                     .append(": ")
                     .append(desc)
