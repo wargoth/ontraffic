@@ -179,6 +179,18 @@ limitations under the License.
         <button class="btn" type="submit">A card to all users</button>
       </form>
 
+        <form action="<%= WebUtil.buildUrl(request, "/cron/trafficService") %>" method="get">
+            <button class="btn" type="submit">Update traffic cron</button>
+        </form>
+
+        <form action="<%= WebUtil.buildUrl(request, "/cron/cleanup") %>" method="get">
+            <button class="btn" type="submit">Cleanup datastore</button>
+        </form>
+
+        <form action="<%= WebUtil.buildUrl(request, "/main") %>" method="post">
+            <input type="hidden" name="operation" value="insertOntraffic">
+            <button class="btn" type="submit">Send ontraffic card</button>
+        </form>
     </div>
 
     <div class="span4">

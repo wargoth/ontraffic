@@ -22,11 +22,7 @@ import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson.JacksonFactory;
 import com.google.api.services.mirror.Mirror;
-import com.google.api.services.mirror.model.Location;
-import com.google.api.services.mirror.model.Notification;
-import com.google.api.services.mirror.model.NotificationConfig;
-import com.google.api.services.mirror.model.TimelineItem;
-import com.google.api.services.mirror.model.UserAction;
+import com.google.api.services.mirror.model.*;
 import com.google.glassware.model.LogRecord;
 import com.google.glassware.model.NearLog;
 import com.google.glassware.model.UserLastLocation;
@@ -36,11 +32,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Writer;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -52,6 +44,8 @@ import java.util.logging.Logger;
  * @author Jenny Murphy - http://google.com/+JennyMurphy
  */
 public class NotifyServlet extends HttpServlet {
+    private static final long serialVersionUID = 7257039357957674961L;
+
     private static final Logger LOG = Logger.getLogger(MainServlet.class.getSimpleName());
     public static final int SPEED_THRESHOLD = 20; // in km/h
     public static final int DISTANCE_THRESHOLD = 20; // in km
@@ -165,10 +159,25 @@ public class NotifyServlet extends HttpServlet {
         }
     }
 
-    private void onDriving(Credential credential, Location location, double speed) throws IOException {
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        String userId = AuthUtil.getUserId(req);
+        Credential credential = AuthUtil.newAuthorizationCodeFlow().loadCredential(userId);
+
+        Location location = new Location();
+        location.setLatitude(37.778313);
+        location.setLongitude(-122.419333);
+        onDriving(credential, location, 0);
+    }
+
+    protected void onDriving(Credential credential, Location location, double speed) throws IOException {
         LOG.info("Driving detected");
 
         List<NearLog> nearestLogs = getNearestLogs(location);
+        if (nearestLogs.isEmpty())
+            return;
+
+        StringBuilder read = new StringBuilder();
 
         StringBuilder html = new StringBuilder();
 
@@ -177,11 +186,23 @@ public class NotifyServlet extends HttpServlet {
                 .append("<ul class=\"text-x-small\">");
 
         for (NearLog logRecord : nearestLogs) {
-            html.append("<li>").append(toMiles(logRecord.getDistance())).append("mi")
+            float miles = toMiles(logRecord.getDistance());
+            String loc = logRecord.getLogRecord().getLocation();
+            String desc = logRecord.getLogRecord().getLocationDesc();
+
+
+            read.append(miles)
+                    .append(" miles away ")
+                    .append(loc)
+                    .append(": ")
+                    .append(desc)
+                    .append(";");
+
+            html.append("<li><span class=yellow>").append(miles).append("mi</span>")
                     .append(" ")
-                    .append(logRecord.getLogRecord().getLocation())
+                    .append(loc)
                     .append(" ")
-                    .append(logRecord.getLogRecord().getLocationDesc())
+                    .append(desc)
                     .append("</li>");
 
         }
@@ -192,11 +213,18 @@ public class NotifyServlet extends HttpServlet {
                 "</footer>" +
                 "</article>");
 
-        MirrorClient.insertTimelineItem(
-                credential,
-                new TimelineItem()
-                        .setHtml(html.toString())
-                        .setNotification(new NotificationConfig().setLevel("DEFAULT")).setLocation(location));
+        List<MenuItem> menuItemList = new ArrayList<MenuItem>();
+        // Built in actions
+        menuItemList.add(new MenuItem().setAction("READ_ALOUD"));
+        menuItemList.add(new MenuItem().setAction("DELETE"));
+
+
+        TimelineItem timelineItem = new TimelineItem()
+                .setHtml(html.toString())
+                .setSpeakableText(read.toString())
+                .setMenuItems(menuItemList)
+                .setNotification(new NotificationConfig().setLevel("DEFAULT")).setLocation(location);
+        MirrorClient.insertTimelineItem(credential, timelineItem);
     }
 
     private List<NearLog> getNearestLogs(Location location) {
@@ -223,7 +251,6 @@ public class NotifyServlet extends HttpServlet {
         }
 
         Collections.sort(result);
-        Collections.reverse(result);
 
         return result;
     }

@@ -21,11 +21,7 @@ import com.google.api.client.googleapis.batch.json.JsonBatchCallback;
 import com.google.api.client.googleapis.json.GoogleJsonError;
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.http.HttpHeaders;
-import com.google.api.services.mirror.model.Contact;
-import com.google.api.services.mirror.model.MenuItem;
-import com.google.api.services.mirror.model.MenuValue;
-import com.google.api.services.mirror.model.NotificationConfig;
-import com.google.api.services.mirror.model.TimelineItem;
+import com.google.api.services.mirror.model.*;
 import com.google.common.collect.Lists;
 
 import java.io.IOException;
@@ -107,6 +103,15 @@ public class MainServlet extends HttpServlet {
         message = insertItemAllUsers(req);
 
 
+
+    } else if (req.getParameter("operation").equals("insertOntraffic")) {
+        message = "OK";
+
+        Location location = new Location();
+        location.setLatitude(37.778313);
+        location.setLongitude(-122.419333);
+
+        new NotifyServlet().onDriving(credential, location, 0);
     } else {
         message = nop(req);
     }
