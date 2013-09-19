@@ -45,6 +45,8 @@ import java.io.Writer;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -58,7 +60,7 @@ public class NotifyServlet extends HttpServlet {
 
     private static final Logger LOG = Logger.getLogger(MainServlet.class.getSimpleName());
     public static final int SPEED_THRESHOLD = 0; // in km/h
-    public static final int DISTANCE_THRESHOLD = 15; // in km
+    public static final int DISTANCE_THRESHOLD = 10; // in km
     public static final int MAX_NEARBY_LOGS = 5;
     public static final String MAPQUEST_KEY = "Fmjtd%7Cluub2hu1n1%2Crn%3Do5-9utx1f";
     public static final double EARTH_R = 6371.0;
@@ -257,7 +259,14 @@ public class NotifyServlet extends HttpServlet {
             result.add(nearLog);
         }
 
-        return result;
+        Collections.sort(result, new Comparator<NearLog>() {
+            @Override
+            public int compare(NearLog o1, NearLog o2) {
+                return Double.compare(o1.getDistance(), o2.getDistance());
+            }
+        });
+
+        return result.subList(0, Math.min(MAX_NEARBY_LOGS, result.size()) - 1);
     }
 
     private String toStr(GeoLocation bound) {
