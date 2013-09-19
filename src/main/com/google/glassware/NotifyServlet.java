@@ -22,7 +22,12 @@ import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson.JacksonFactory;
 import com.google.api.services.mirror.Mirror;
-import com.google.api.services.mirror.model.*;
+import com.google.api.services.mirror.model.Location;
+import com.google.api.services.mirror.model.MenuItem;
+import com.google.api.services.mirror.model.Notification;
+import com.google.api.services.mirror.model.NotificationConfig;
+import com.google.api.services.mirror.model.TimelineItem;
+import com.google.api.services.mirror.model.UserAction;
 import com.google.glassware.model.LogRecord;
 import com.google.glassware.model.NearLog;
 import com.google.glassware.model.UserLastLocation;
@@ -32,7 +37,13 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
+import java.io.Writer;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -181,8 +192,14 @@ public class NotifyServlet extends HttpServlet {
 
         StringBuilder html = new StringBuilder();
 
-        html.append("<article>")
-                .append("<section>")
+        html.append("<article>");
+
+        html.append("<figure>").append("<img src=\"")
+                .append(getMapLink(location, nearestLogs))
+                .append("\">")
+                .append("</figure>");
+
+        html.append("<section>")
                 .append("<ul class=\"text-x-small\">");
 
         for (NearLog logRecord : nearestLogs) {
@@ -267,9 +284,6 @@ public class NotifyServlet extends HttpServlet {
         double distance = getDistanceKm(a, b);
         double hours = Math.abs(a.getDate().getTime() - b.getDate().getTime()) / 1000.0 / 3600.0;
 
-        LOG.info("Distance is: " + distance);
-        LOG.info("Time: " + hours);
-
         return distance / hours;
     }
 
@@ -291,4 +305,31 @@ public class NotifyServlet extends HttpServlet {
         return R * 2.0 * Math.atan2(Math.sqrt(c), Math.sqrt(1.0 - c));
     }
 
+    public StringBuilder getMapLink(Location location, List<NearLog> nearestLogs) throws UnsupportedEncodingException {
+        StringBuilder result = new StringBuilder();
+        result.append("http://maps.googleapis.com/maps/api/staticmap?")
+                .append("size=240x360&sensor=false")
+                .append("&markers=")
+                .append(encode("color:blue|" + toStr(location)));
+
+        for (NearLog log : nearestLogs) {
+            LogRecord rec = log.getLogRecord();
+            result.append("&markers=")
+                    .append(encode("color:red|label:I|" + toStr(rec)));
+        }
+
+        return result;
+    }
+
+    private String toStr(LogRecord rec) {
+        return rec.getLat() + "," + rec.getLon();
+    }
+
+    private String encode(String s) throws UnsupportedEncodingException {
+        return URLEncoder.encode(s, "UTF-8");
+    }
+
+    private String toStr(Location location) {
+        return location.getLatitude() + "," + location.getLongitude();
+    }
 }
