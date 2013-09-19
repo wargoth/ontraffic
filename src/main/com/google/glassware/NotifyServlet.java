@@ -57,8 +57,8 @@ public class NotifyServlet extends HttpServlet {
     private static final long serialVersionUID = 7257039357957674961L;
 
     private static final Logger LOG = Logger.getLogger(MainServlet.class.getSimpleName());
-    public static final int SPEED_THRESHOLD = 20; // in km/h
-    public static final int DISTANCE_THRESHOLD = 20; // in km
+    public static final int SPEED_THRESHOLD = 0; // in km/h
+    public static final int DISTANCE_THRESHOLD = 15; // in km
     public static final int MAX_NEARBY_LOGS = 5;
     public static final String MAPQUEST_KEY = "Fmjtd%7Cluub2hu1n1%2Crn%3Do5-9utx1f";
     public static final double EARTH_R = 6371.0;
@@ -234,6 +234,8 @@ public class NotifyServlet extends HttpServlet {
                 .append("&filters=construction,incidents")
                 .append("&inFormat=kvp&outFormat=json");
 
+        LOG.info("Requesting traffic information from: " + req);
+
         URL url = new URL(req.toString());
         Gson gson = new Gson();
 
@@ -290,12 +292,12 @@ public class NotifyServlet extends HttpServlet {
     public StringBuilder getMapLink(Location location, List<NearLog> nearestLogs, HttpServletRequest reqest) throws UnsupportedEncodingException {
         StringBuilder result = new StringBuilder();
         result.append("http://www.mapquestapi.com/staticmap/v4/getmap")
-                .append("?size=240,360")
+                .append("?size=640,360")
                 .append("&type=map")
                 .append("&pois=pcenter,").append(toStr(location));
 
         if (!nearestLogs.isEmpty()) {
-            result.append("&xis=").append(WebUtil.buildUrl(reqest, "/static/transparent.png")).append(",").append(nearestLogs.size());
+            result.append("&xis=").append(WebUtil.buildUrl(reqest, "/static/images/transparent.png")).append(",").append(nearestLogs.size());
 
             for (NearLog log : nearestLogs) {
                 LogRecord rec = log.getLogRecord();
@@ -307,6 +309,7 @@ public class NotifyServlet extends HttpServlet {
         }
 
         result.append("&imagetype=png")
+                .append("&traffic=1&scalebar=false")
                 .append("&key=").append(MAPQUEST_KEY);
 
         return result;
