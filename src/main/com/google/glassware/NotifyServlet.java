@@ -202,6 +202,7 @@ public class NotifyServlet extends HttpServlet {
         html.append("<section>")
                 .append("<ul class=\"text-x-small\">");
 
+        char label = 'A';
         for (NearLog logRecord : nearestLogs) {
             float miles = toMiles(logRecord.getDistance());
             String loc = logRecord.getLogRecord().getLocation();
@@ -215,8 +216,9 @@ public class NotifyServlet extends HttpServlet {
                     .append(desc)
                     .append(";");
 
-            html.append("<li><span class=yellow>").append(miles).append("mi</span>")
-                    .append(" ")
+            html.append("<li>")
+                    .append("<span class=red>").append(Character.toString(label++)).append("</span> ")
+                    .append("<span class=yellow>").append(miles).append("mi</span> ")
                     .append(loc)
                     .append(" ")
                     .append(desc)
@@ -312,11 +314,16 @@ public class NotifyServlet extends HttpServlet {
                 .append("&markers=")
                 .append(encode("color:blue|" + toStr(location)));
 
+        char label = 'A';
         for (NearLog log : nearestLogs) {
             LogRecord rec = log.getLogRecord();
             result.append("&markers=")
-                    .append(encode("color:red|label:I|" + toStr(rec)));
+                    .append(encode("color:red|label:" + Character.toString(label++) + "|" + toStr(rec)));
         }
+
+        result.append("&style=feature:road.highway%7Celement:geometry%7Cvisibility:on%7Ccolor:0xc280e9")
+                .append("&style=feature:road.highway%7Celement:labels.text.stroke%7Cvisibility:on%7Ccolor:0xb06eba")
+                .append("&style=feature:road.highway%7Celement:labels.text.fill%7Cvisibility:on%7Ccolor:0xffffff");
 
         return result;
     }
