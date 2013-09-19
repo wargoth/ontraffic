@@ -73,6 +73,8 @@ public class LogRecord {
             } else if (nodeName.equals("logtype")) {
                 String textContent = item.getTextContent();
                 logType = removeQuotes(textContent);
+                if (locationDesc == null)
+                    locationDesc = logType;
             } else if (nodeName.equals("location")) {
                 String textContent = item.getTextContent();
                 location = removeQuotes(textContent);

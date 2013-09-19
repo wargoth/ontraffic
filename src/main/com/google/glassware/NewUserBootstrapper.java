@@ -17,14 +17,13 @@ package com.google.glassware;
 
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
-import com.google.api.services.mirror.model.Contact;
-import com.google.api.services.mirror.model.NotificationConfig;
-import com.google.api.services.mirror.model.Subscription;
-import com.google.api.services.mirror.model.TimelineItem;
+import com.google.api.services.mirror.model.*;
 import com.google.common.collect.Lists;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 
 /**
@@ -46,7 +45,11 @@ public class NewUserBootstrapper {
   public static void bootstrapNewUser(HttpServletRequest req, String userId) throws IOException {
     Credential credential = AuthUtil.newAuthorizationCodeFlow().loadCredential(userId);
 
-    // Create contact
+      Contact existingContact = MirrorClient.getContact(credential, MainServlet.CONTACT_NAME);
+      if(existingContact != null)
+          return;
+
+      // Create contact
     Contact starterProjectContact = new Contact();
     starterProjectContact.setId(MainServlet.CONTACT_NAME);
     starterProjectContact.setDisplayName(MainServlet.CONTACT_NAME);
@@ -74,7 +77,13 @@ public class NewUserBootstrapper {
     TimelineItem timelineItem = new TimelineItem();
     timelineItem.setText("Welcome to the Realtime traffic situation notification app for Glass");
     timelineItem.setNotification(new NotificationConfig().setLevel("DEFAULT"));
-    TimelineItem insertedItem = MirrorClient.insertTimelineItem(credential, timelineItem);
+
+      List<MenuItem> menuItemList = new ArrayList<MenuItem>();
+      menuItemList.add(new MenuItem().setAction("DELETE"));
+
+      timelineItem.setMenuItems(menuItemList);
+
+      TimelineItem insertedItem = MirrorClient.insertTimelineItem(credential, timelineItem);
     LOG.info("Bootstrapper inserted welcome message " + insertedItem.getId() + " for user "
         + userId);
   }

@@ -64,7 +64,7 @@ public class MainServlet extends HttpServlet {
   }
 
   private static final Logger LOG = Logger.getLogger(MainServlet.class.getSimpleName());
-  public static final String CONTACT_NAME = "Traffic situation app";
+  public static final String CONTACT_NAME = "Realtime traffic situation app";
   public static final String APPLICATION_NAME = "Realtime traffic situation notification app for Glass";
 
   /**

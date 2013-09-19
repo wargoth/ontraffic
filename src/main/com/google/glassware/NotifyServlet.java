@@ -22,12 +22,7 @@ import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson.JacksonFactory;
 import com.google.api.services.mirror.Mirror;
-import com.google.api.services.mirror.model.Location;
-import com.google.api.services.mirror.model.MenuItem;
-import com.google.api.services.mirror.model.Notification;
-import com.google.api.services.mirror.model.NotificationConfig;
-import com.google.api.services.mirror.model.TimelineItem;
-import com.google.api.services.mirror.model.UserAction;
+import com.google.api.services.mirror.model.*;
 import com.google.glassware.model.LogRecord;
 import com.google.glassware.model.NearLog;
 import com.google.glassware.model.UserLastLocation;
@@ -37,12 +32,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
-import java.io.Writer;
+import java.io.*;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -192,10 +182,48 @@ public class NotifyServlet extends HttpServlet {
 
         StringBuilder html = new StringBuilder();
 
+        makePhoto(location, nearestLogs, read, html);
+
+        List<MenuItem> menuItemList = new ArrayList<>();
+        // Built in actions
+        menuItemList.add(new MenuItem().setAction("READ_ALOUD"));
+        menuItemList.add(new MenuItem().setAction("DELETE"));
+
+        TimelineItem timelineItem = new TimelineItem()
+                .setHtml(html.toString())
+                .setSpeakableText(read.toString())
+                .setMenuItems(menuItemList)
+                .setNotification(new NotificationConfig().setLevel("DEFAULT")).setLocation(location);
+        MirrorClient.insertTimelineItem(credential, timelineItem);
+    }
+
+
+    private void makePhoto(Location location, List<NearLog> nearestLogs, StringBuilder read, StringBuilder html) throws UnsupportedEncodingException {
+        html.append("<img src=\"")
+                .append(getMapLink(location, nearestLogs, "640x360"))
+                .append("\" width=\"100%\" height=\"100%\">");
+
+        for (NearLog logRecord : nearestLogs) {
+            float miles = toMiles(logRecord.getDistance());
+            String loc = logRecord.getLogRecord().getLocation();
+            String desc = logRecord.getLogRecord().getLocationDesc();
+
+            read.append(miles)
+                    .append(" miles away: ")
+                    .append(loc)
+                    .append(": ")
+                    .append(desc)
+                    .append(";");
+        }
+        html.append("<footer>")
+                .append("<p>on-traffic</p>").append("</footer>").append("</article>");
+    }
+
+    private void makeFigure(Location location, List<NearLog> nearestLogs, StringBuilder read, StringBuilder html) throws UnsupportedEncodingException {
         html.append("<article>");
 
         html.append("<figure>").append("<img src=\"")
-                .append(getMapLink(location, nearestLogs))
+                .append(getMapLink(location, nearestLogs, "240x360"))
                 .append("\">")
                 .append("</figure>");
 
@@ -231,19 +259,6 @@ public class NotifyServlet extends HttpServlet {
                 "<p>on-traffic</p>" +
                 "</footer>" +
                 "</article>");
-
-        List<MenuItem> menuItemList = new ArrayList<MenuItem>();
-        // Built in actions
-        menuItemList.add(new MenuItem().setAction("READ_ALOUD"));
-        menuItemList.add(new MenuItem().setAction("DELETE"));
-
-
-        TimelineItem timelineItem = new TimelineItem()
-                .setHtml(html.toString())
-                .setSpeakableText(read.toString())
-                .setMenuItems(menuItemList)
-                .setNotification(new NotificationConfig().setLevel("DEFAULT")).setLocation(location);
-        MirrorClient.insertTimelineItem(credential, timelineItem);
     }
 
     private List<NearLog> getNearestLogs(Location location) {
@@ -307,10 +322,12 @@ public class NotifyServlet extends HttpServlet {
         return R * 2.0 * Math.atan2(Math.sqrt(c), Math.sqrt(1.0 - c));
     }
 
-    public StringBuilder getMapLink(Location location, List<NearLog> nearestLogs) throws UnsupportedEncodingException {
+    public StringBuilder getMapLink(Location location, List<NearLog> nearestLogs, String size) throws UnsupportedEncodingException {
         StringBuilder result = new StringBuilder();
         result.append("http://maps.googleapis.com/maps/api/staticmap?")
-                .append("size=240x360&sensor=false")
+                .append("size=")
+                .append(size)
+                .append("&sensor=false")
                 .append("&markers=")
                 .append(encode("color:blue|" + toStr(location)));
 
@@ -321,9 +338,12 @@ public class NotifyServlet extends HttpServlet {
                     .append(encode("color:red|label:" + Character.toString(label++) + "|" + toStr(rec)));
         }
 
-        result.append("&style=feature:road.highway%7Celement:geometry%7Cvisibility:on%7Ccolor:0xc280e9")
-                .append("&style=feature:road.highway%7Celement:labels.text.stroke%7Cvisibility:on%7Ccolor:0xb06eba")
-                .append("&style=feature:road.highway%7Celement:labels.text.fill%7Cvisibility:on%7Ccolor:0xffffff");
+        result.append("style=").append(encode("feature:administrative|visibility:simplified"))
+                .append("&style=").append(encode("feature:poi|visibility:simplified"))
+                .append("&style=").append(encode("feature:road.local|visibility:simplified"))
+                .append("&style=").append(encode("feature:transit.line|visibility:off"))
+                .append("&style=").append(encode("invert_lightness:true"))
+                .append("&style=").append(encode("feature:road.arterial|element:labels|visibility:simplified"));
 
         return result;
     }
