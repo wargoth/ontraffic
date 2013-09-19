@@ -15,9 +15,6 @@
  */
 package com.google.glassware;
 
-import com.beoui.geocell.GeocellManager;
-import com.beoui.geocell.model.GeocellQuery;
-import com.beoui.geocell.model.Point;
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson.JacksonFactory;
@@ -31,8 +28,10 @@ import com.google.api.services.mirror.model.UserAction;
 import com.google.glassware.model.LogRecord;
 import com.google.glassware.model.NearLog;
 import com.google.glassware.model.UserLastLocation;
+import com.google.glassware.model.mapquest.Incident;
+import com.google.glassware.model.mapquest.TrafficResponse;
+import com.google.gson.Gson;
 
-import javax.jdo.PersistenceManager;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -43,9 +42,9 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
+import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -61,6 +60,8 @@ public class NotifyServlet extends HttpServlet {
     public static final int SPEED_THRESHOLD = 20; // in km/h
     public static final int DISTANCE_THRESHOLD = 20; // in km
     public static final int MAX_NEARBY_LOGS = 5;
+    public static final String MAPQUEST_KEY = "Fmjtd%7Cluub2hu1n1%2Crn%3Do5-9utx1f";
+    public static final double EARTH_R = 6371.0;
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
@@ -166,7 +167,7 @@ public class NotifyServlet extends HttpServlet {
         LOG.info("Current speed is " + speed);
 
         if (speed > SPEED_THRESHOLD) {
-            onDriving(credential, location, speed);
+            onDriving(request, credential, location, speed);
         }
     }
 
@@ -178,10 +179,10 @@ public class NotifyServlet extends HttpServlet {
         Location location = new Location();
         location.setLatitude(37.778313);
         location.setLongitude(-122.419333);
-        onDriving(credential, location, 0);
+        onDriving(req, credential, location, 0);
     }
 
-    protected void onDriving(Credential credential, Location location, double speed) throws IOException {
+    protected void onDriving(HttpServletRequest req, Credential credential, Location location, double speed) throws IOException {
         LOG.info("Driving detected");
 
         List<NearLog> nearestLogs = getNearestLogs(location);
@@ -189,54 +190,29 @@ public class NotifyServlet extends HttpServlet {
             return;
 
         StringBuilder read = new StringBuilder();
-
         StringBuilder html = new StringBuilder();
 
-        html.append("<article>");
+        html.append("<article class=\"photo\" style=\"left: 0px; visibility: visible;\">");
+        html.append("<img src=\"").append(getMapLink(location, nearestLogs, req)).append("\" width=\"100%\" height=\"100%\">");
+        html.append("<footer>")
+                .append("<p>on-traffic</p>")
+                .append("</footer>")
+                .append("</article>");
 
-        html.append("<figure>").append("<img src=\"")
-                .append(getMapLink(location, nearestLogs))
-                .append("\">")
-                .append("</figure>");
-
-        html.append("<section>")
-                .append("<ul class=\"text-x-small\">");
-
-        char label = 'A';
         for (NearLog logRecord : nearestLogs) {
             float miles = toMiles(logRecord.getDistance());
-            String loc = logRecord.getLogRecord().getLocation();
             String desc = logRecord.getLogRecord().getLocationDesc();
-
 
             read.append(miles)
                     .append(" miles away: ")
-                    .append(loc)
-                    .append(": ")
                     .append(desc)
                     .append(";");
-
-            html.append("<li>")
-                    .append("<span class=red>").append(Character.toString(label++)).append("</span> ")
-                    .append("<span class=yellow>").append(miles).append("mi</span> ")
-                    .append(loc)
-                    .append(" ")
-                    .append(desc)
-                    .append("</li>");
-
         }
-        html.append("</ul>" +
-                "</section>" +
-                "<footer>" +
-                "<p>on-traffic</p>" +
-                "</footer>" +
-                "</article>");
 
-        List<MenuItem> menuItemList = new ArrayList<MenuItem>();
+        List<MenuItem> menuItemList = new ArrayList<>();
         // Built in actions
         menuItemList.add(new MenuItem().setAction("READ_ALOUD"));
         menuItemList.add(new MenuItem().setAction("DELETE"));
-
 
         TimelineItem timelineItem = new TimelineItem()
                 .setHtml(html.toString())
@@ -246,32 +222,44 @@ public class NotifyServlet extends HttpServlet {
         MirrorClient.insertTimelineItem(credential, timelineItem);
     }
 
-    private List<NearLog> getNearestLogs(Location location) {
-        Point center = new Point(location.getLatitude(), location.getLongitude());
+    private List<NearLog> getNearestLogs(Location location) throws IOException {
+        GeoLocation loc = GeoLocation.fromDegrees(location.getLatitude(), location.getLongitude());
 
+        GeoLocation[] bounds = loc.boundingCoordinates(DISTANCE_THRESHOLD, EARTH_R);
 
-        PersistenceManager pm = PMF.get().getPersistenceManager();
+        StringBuilder req = new StringBuilder();
+        req.append("http://www.mapquestapi.com/traffic/v2/incidents?key=")
+                .append(MAPQUEST_KEY)
+                .append("&boundingBox=").append(toStr(bounds[0])).append(",").append(toStr(bounds[1]))
+                .append("&filters=construction,incidents")
+                .append("&inFormat=kvp&outFormat=json");
 
-        GeocellQuery baseQuery = new GeocellQuery();
-        List<LogRecord> logRecords = GeocellManager.proximitySearch(center, MAX_NEARBY_LOGS, DISTANCE_THRESHOLD * 1000, LogRecord.class, baseQuery, pm);
+        URL url = new URL(req.toString());
+        Gson gson = new Gson();
 
-        double aLat = location.getLatitude();
-        double aLon = location.getLongitude();
+        TrafficResponse response = gson.fromJson(new InputStreamReader(url.openStream()), TrafficResponse.class);
 
         List<NearLog> result = new ArrayList<>();
 
-        for (LogRecord logRecord : logRecords) {
-            double distance = getDistance(aLat, aLon, logRecord.getLat(), logRecord.getLon());
-
+        for (Incident incident : response.incidents) {
             NearLog nearLog = new NearLog();
-            nearLog.setDistance(distance);
+            LogRecord logRecord = new LogRecord();
+
             nearLog.setLogRecord(logRecord);
+            nearLog.setDistance(toMiles(getDistance(incident.lat, incident.lng, location.getLatitude(), location.getLongitude())));
+
+            logRecord.setLat(incident.lat);
+            logRecord.setLon(incident.lng);
+            logRecord.setLocationDesc(incident.fullDesc);
+
             result.add(nearLog);
         }
 
-        Collections.sort(result);
-
         return result;
+    }
+
+    private String toStr(GeoLocation bound) {
+        return bound.getLatitudeInDegrees() + "," + bound.getLongitudeInDegrees();
     }
 
     private int toMPH(double kmph) {
@@ -294,36 +282,32 @@ public class NotifyServlet extends HttpServlet {
     }
 
     private static double getDistance(double aLat, double aLon, double bLat, double bLon) {
-        final double R = 6371.0; // km or 3,959 miles
-
-        double dLat = Math.toRadians(bLat - aLat);
-        double dLon = Math.toRadians(bLon - aLon);
-
-        double latA = Math.toRadians(aLat);
-        double latB = Math.toRadians(bLat);
-        double c = Math.sin(dLat / 2.0) * Math.sin(dLat / 2.0) +
-                Math.sin(dLon / 2.0) * Math.sin(dLon / 2.0) * Math.cos(latA) * Math.cos(latB);
-
-        return R * 2.0 * Math.atan2(Math.sqrt(c), Math.sqrt(1.0 - c));
+        GeoLocation a = GeoLocation.fromDegrees(aLat, aLon);
+        GeoLocation b = GeoLocation.fromDegrees(bLat, bLon);
+        return a.distanceTo(b, EARTH_R);
     }
 
-    public StringBuilder getMapLink(Location location, List<NearLog> nearestLogs) throws UnsupportedEncodingException {
+    public StringBuilder getMapLink(Location location, List<NearLog> nearestLogs, HttpServletRequest reqest) throws UnsupportedEncodingException {
         StringBuilder result = new StringBuilder();
-        result.append("http://maps.googleapis.com/maps/api/staticmap?")
-                .append("size=240x360&sensor=false")
-                .append("&markers=")
-                .append(encode("color:blue|" + toStr(location)));
+        result.append("http://www.mapquestapi.com/staticmap/v4/getmap")
+                .append("?size=240,360")
+                .append("&type=map")
+                .append("&pois=pcenter,").append(toStr(location));
 
-        char label = 'A';
-        for (NearLog log : nearestLogs) {
-            LogRecord rec = log.getLogRecord();
-            result.append("&markers=")
-                    .append(encode("color:red|label:" + Character.toString(label++) + "|" + toStr(rec)));
+        if (!nearestLogs.isEmpty()) {
+            result.append("&xis=").append(WebUtil.buildUrl(reqest, "/static/transparent.png")).append(",").append(nearestLogs.size());
+
+            for (NearLog log : nearestLogs) {
+                LogRecord rec = log.getLogRecord();
+                result.append(",,").append(toStr(rec)).append(",,,,");
+            }
+        } else {
+            result.append("&center=").append(toStr(location))
+                    .append("&zoom=13");
         }
 
-        result.append("&style=feature:road.highway%7Celement:geometry%7Cvisibility:on%7Ccolor:0xc280e9")
-                .append("&style=feature:road.highway%7Celement:labels.text.stroke%7Cvisibility:on%7Ccolor:0xb06eba")
-                .append("&style=feature:road.highway%7Celement:labels.text.fill%7Cvisibility:on%7Ccolor:0xffffff");
+        result.append("&imagetype=png")
+                .append("&key=").append(MAPQUEST_KEY);
 
         return result;
     }

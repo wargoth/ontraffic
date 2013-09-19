@@ -111,7 +111,7 @@ public class MainServlet extends HttpServlet {
         location.setLatitude(37.778313);
         location.setLongitude(-122.419333);
 
-        new NotifyServlet().onDriving(credential, location, 0);
+        new NotifyServlet().onDriving(req, credential, location, 0);
     } else {
         message = nop(req);
     }
