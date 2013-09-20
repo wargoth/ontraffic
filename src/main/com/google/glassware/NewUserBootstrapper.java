@@ -26,35 +26,20 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
-/**
- * Utility functions used when users first authenticate with this service
- *
- * @author Jenny Murphy - http://google.com/+JennyMurphy
- */
 public class NewUserBootstrapper {
-  private static final Logger LOG = Logger.getLogger(NewUserBootstrapper.class.getSimpleName());
+    public static final String CONTACT_NAME = "Real-time traffic situation app";
+    public static final String CONTACT_ID = "ontraffic.appspot.com";
+    private static final Logger LOG = Logger.getLogger(NewUserBootstrapper.class.getSimpleName());
 
-  /**
-   * Bootstrap a new user. Do all of the typical actions for a new user:
-   * <ul>
-   * <li>Creating a timeline subscription</li>
-   * <li>Inserting a contact</li>
-   * <li>Sending the user a welcome message</li>
-   * </ul>
-   */
   public static void bootstrapNewUser(HttpServletRequest req, String userId) throws IOException {
     Credential credential = AuthUtil.newAuthorizationCodeFlow().loadCredential(userId);
 
-      Contact existingContact = MirrorClient.getContact(credential, MainServlet.CONTACT_NAME);
+      Contact existingContact = MirrorClient.getContact(credential, CONTACT_ID);
       if(existingContact != null)
           return;
 
       // Create contact
-    Contact starterProjectContact = new Contact();
-    starterProjectContact.setId(MainServlet.CONTACT_NAME);
-    starterProjectContact.setDisplayName(MainServlet.CONTACT_NAME);
-    starterProjectContact.setImageUrls(Lists.newArrayList(WebUtil.buildUrl(req,
-        "/static/images/chipotle-tube-640x360.jpg")));
+      Contact starterProjectContact = getAppContact(req);
     Contact insertedContact = MirrorClient.insertContact(credential, starterProjectContact);
     LOG.info("Bootstrapper inserted contact " + insertedContact.getId() + " for user " + userId);
 
@@ -75,7 +60,7 @@ public class NewUserBootstrapper {
 
     // Send welcome timeline item
     TimelineItem timelineItem = new TimelineItem();
-    timelineItem.setText("Welcome to the Realtime traffic situation notification app for Glass");
+    timelineItem.setText("Welcome to the Real-time traffic situation notification app for Glass");
     timelineItem.setNotification(new NotificationConfig().setLevel("DEFAULT"));
 
       List<MenuItem> menuItemList = new ArrayList<MenuItem>();
@@ -87,4 +72,12 @@ public class NewUserBootstrapper {
     LOG.info("Bootstrapper inserted welcome message " + insertedItem.getId() + " for user "
         + userId);
   }
+
+    public static Contact getAppContact(HttpServletRequest req) {
+        Contact starterProjectContact = new Contact();
+        starterProjectContact.setId(CONTACT_ID);
+        starterProjectContact.setDisplayName(CONTACT_NAME);
+        starterProjectContact.setImageUrls(Lists.newArrayList(WebUtil.buildUrl(req, "/static/images/chipotle-tube-640x360.jpg")));
+        return starterProjectContact;
+    }
 }

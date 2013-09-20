@@ -17,9 +17,13 @@ package com.google.glassware;
 
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.extensions.appengine.http.UrlFetchTransport;
+import com.google.api.client.googleapis.batch.BatchRequest;
+import com.google.api.client.googleapis.batch.json.JsonBatchCallback;
+import com.google.api.client.googleapis.json.GoogleJsonError;
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.http.ByteArrayContent;
 import com.google.api.client.http.GenericUrl;
+import com.google.api.client.http.HttpHeaders;
 import com.google.api.client.http.HttpResponse;
 import com.google.api.client.json.jackson.JacksonFactory;
 import com.google.api.services.mirror.Mirror;
@@ -82,6 +86,39 @@ public class MirrorClient {
     list.setMaxResults(count);
     return list.execute();
   }
+
+    public static int cleanUpTimeline(Credential credential) throws IOException {
+        Mirror.Timeline timelineItems = getMirror(credential).timeline();
+        Mirror.Timeline.List list = timelineItems.list();
+
+        TimelineListResponse execute = list.execute();
+
+        class BatchCallback extends JsonBatchCallback<Void> {
+            private int success = 0;
+
+            @Override
+            public void onFailure(GoogleJsonError error, HttpHeaders headers) throws IOException {
+                LOG.info("Failed to delete item: " + error.getMessage());
+            }
+
+            @Override
+            public void onSuccess(Void aVoid, HttpHeaders responseHeaders) throws IOException {
+                ++success;
+            }
+        }
+
+        BatchRequest batch = MirrorClient.getMirror(null).batch();
+        BatchCallback callback = new BatchCallback();
+
+        for (TimelineItem timelineItem : execute.getItems()) {
+            getMirror(credential).timeline().delete(timelineItem.getId())
+                    .queue(batch, callback);
+        }
+
+        batch.execute();
+
+        return callback.success;
+    }
 
 
   /**

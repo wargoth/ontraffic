@@ -59,12 +59,20 @@
     <servlet-name>signout</servlet-name>
     <url-pattern>/signout</url-pattern>
   </servlet-mapping>
-
+    <servlet>
+        <servlet-name>AdminServlet</servlet-name>
+        <servlet-class>com.google.glassware.AdminServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>AdminServlet</servlet-name>
+        <url-pattern>/admin/do</url-pattern>
+    </servlet-mapping>
 
     <security-constraint>
         <web-resource-collection>
-            <web-resource-name>Cron</web-resource-name>
+            <web-resource-name>Restricted pages</web-resource-name>
             <url-pattern>/cron/*</url-pattern>
+            <url-pattern>/admin/*</url-pattern>
         </web-resource-collection>
         <auth-constraint>
             <role-name>admin</role-name>
