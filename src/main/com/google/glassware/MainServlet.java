@@ -1,6 +1,7 @@
 package com.google.glassware;
 
 import com.google.api.client.auth.oauth2.Credential;
+import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.mirror.model.Contact;
 
 import javax.servlet.http.HttpServlet;
@@ -19,34 +20,24 @@ public class MainServlet extends HttpServlet {
 
         String userId = AuthUtil.getUserId(req);
         Credential credential = AuthUtil.newAuthorizationCodeFlow().loadCredential(userId);
-        String message = null;
+        String message = "Invalid parameters provided";
 
         if (req.getParameter("operation").equals("signup")) {
             message = insertContact(req, credential);
-            message = insertSubscription(req, userId, credential);
+            message = insertSubscriptions(req, userId, credential);
             message = "Successfully signed up";
         } else if (req.getParameter("operation").equals("cleanup")) {
-            message = cleanAllMessages(req, credential);
+            message = cleanAllMessages(credential);
         } else if (req.getParameter("operation").equals("leave")) {
-            message = deleteContact(req, credential);
-            message = deleteSubscription(req, credential);
+            message = deleteContact(credential);
+            message = deleteSubscriptions(credential);
             message = "Successfully left";
-        } else {
-            message = nop(req);
         }
         WebUtil.setFlash(req, message);
         res.sendRedirect(WebUtil.buildUrl(req, "/"));
     }
 
-    private String nop(HttpServletRequest req) {
-        String message;
-        String operation = req.getParameter("operation");
-        LOG.warning("Unknown operation specified " + operation);
-        message = "I don't know how to do that";
-        return message;
-    }
-
-    private String deleteContact(HttpServletRequest req, Credential credential) throws IOException {
+    private String deleteContact(Credential credential) throws IOException {
         String message;// Insert a contact
         LOG.fine("Deleting contact Item");
         MirrorClient.deleteContact(credential, NewUserBootstrapper.CONTACT_ID);
@@ -60,24 +51,27 @@ public class MainServlet extends HttpServlet {
         Contact contact = NewUserBootstrapper.getAppContact(req);
         MirrorClient.insertContact(credential, contact);
 
-        return "Inserted contact: " + req.getParameter("name");
+        return "Inserted contact: " + contact.getDisplayName();
     }
 
-    private String deleteSubscription(HttpServletRequest req, Credential credential) throws IOException {
-        MirrorClient.deleteSubscription(credential, req.getParameter("subscriptionId"));
+    private String deleteSubscriptions(Credential credential) throws IOException {
+        MirrorClient.deleteSubscription(credential, "timeline");
+        MirrorClient.deleteSubscription(credential, "locations");
 
         return "Application has been unsubscribed.";
     }
 
-    private String insertSubscription(HttpServletRequest req, String userId, Credential credential) throws IOException {
-        String message;
-        MirrorClient.insertSubscription(credential, WebUtil.buildUrl(req, "/notify"), userId,
-                req.getParameter("collection"));
-        message = "Application is now subscribed to updates.";
-        return message;
+    private String insertSubscriptions(HttpServletRequest req, String userId, Credential credential) throws IOException {
+        try {
+            MirrorClient.insertSubscription(credential, WebUtil.buildUrl(req, "/notify"), userId, "timeline");
+            MirrorClient.insertSubscription(credential, WebUtil.buildUrl(req, "/notify"), userId, "locations");
+        } catch (GoogleJsonResponseException ignore) {
+        }
+        
+        return "Application is now subscribed to updates.";
     }
 
-    private String cleanAllMessages(HttpServletRequest req, Credential credential) throws IOException {
+    private String cleanAllMessages(Credential credential) throws IOException {
         int count = MirrorClient.cleanUpTimeline(credential);
         return String.format("Timeline successfully cleaned up. Removed %d timeline items", count);
     }

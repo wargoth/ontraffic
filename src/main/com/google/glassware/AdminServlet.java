@@ -117,7 +117,7 @@ public class AdminServlet extends HttpServlet {
         message = nop(req);
     }
     WebUtil.setFlash(req, message);
-    res.sendRedirect(WebUtil.buildUrl(req, "/"));
+    res.sendRedirect(WebUtil.buildUrl(req, "/admin/"));
   }
 
     private String nop(HttpServletRequest req) {

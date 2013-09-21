@@ -44,7 +44,7 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Glassware Starter Project</title>
-    <link href="/webapp/static/bootstrap/css/bootstrap.min.css" rel="stylesheet"
+    <link href="/static/bootstrap/css/bootstrap.min.css" rel="stylesheet"
           media="screen">
 
     <style>
@@ -135,13 +135,13 @@
                 <a href="https://developers.google.com/glass/timeline">here</a></p>
 
 
-            <form action="<%= WebUtil.buildUrl(request, "/admin") %>" method="post">
+            <form action="<%= WebUtil.buildUrl(request, "/admin/do") %>" method="post">
                 <input type="hidden" name="operation" value="insertItem">
                 <textarea name="message">Hello World!</textarea><br/>
                 <button class="btn" type="submit">The above message</button>
             </form>
 
-            <form action="<%= WebUtil.buildUrl(request, "/admin") %>" method="post">
+            <form action="<%= WebUtil.buildUrl(request, "/admin/do") %>" method="post">
                 <input type="hidden" name="operation" value="insertItem">
                 <input type="hidden" name="message" value="Chipotle says 'hi'!">
                 <input type="hidden" name="imageUrl" value="<%= appBaseUrl +
@@ -153,17 +153,17 @@
                "static/images/chipotle-tube-640x360.jpg" %>">
                 </button>
             </form>
-            <form action="<%= WebUtil.buildUrl(request, "/admin") %>" method="post">
+            <form action="<%= WebUtil.buildUrl(request, "/admin/do") %>" method="post">
                 <input type="hidden" name="operation" value="insertItemWithAction">
                 <button class="btn" type="submit">A card you can reply to</button>
             </form>
             <hr>
-            <form action="<%= WebUtil.buildUrl(request, "/admin") %>" method="post">
+            <form action="<%= WebUtil.buildUrl(request, "/admin/do") %>" method="post">
                 <input type="hidden" name="operation" value="insertItemAllUsers">
                 <button class="btn" type="submit">A card to all users</button>
             </form>
 
-            <form action="<%= WebUtil.buildUrl(request, "/admin") %>" method="post">
+            <form action="<%= WebUtil.buildUrl(request, "/admin/do") %>" method="post">
                 <input type="hidden" name="operation" value="insertOntraffic">
                 <button class="btn" type="submit">Send ontraffic card</button>
             </form>
@@ -177,12 +177,12 @@
                 <a href="https://developers.google.com/glass/contacts">here</a>.</p>
 
             <% if (contact == null) { %>
-            <form class="span3" action="<%= WebUtil.buildUrl(request, "/admin") %>"
+            <form class="span3" action="<%= WebUtil.buildUrl(request, "/admin/do") %>"
                   method="post">
                 <button class="btn" type="submit">Insert Contact</button>
             </form>
             <% } else { %>
-            <form class="span3" action="<%= WebUtil.buildUrl(request, "/admin") %>"
+            <form class="span3" action="<%= WebUtil.buildUrl(request, "/admin/do") %>"
                   method="post">
                 <button class="btn" type="submit">Delete Contact</button>
             </form>
@@ -200,7 +200,7 @@
                 not work on localhost.</p>
 
             <% if (timelineSubscriptionExists) { %>
-            <form action="<%= WebUtil.buildUrl(request, "/admin") %>"
+            <form action="<%= WebUtil.buildUrl(request, "/admin/do") %>"
                   method="post">
                 <input type="hidden" name="subscriptionId" value="timeline">
                 <input type="hidden" name="operation" value="deleteSubscription">
@@ -209,7 +209,7 @@
                 </button>
             </form>
             <% } else { %>
-            <form action="<%= WebUtil.buildUrl(request, "/admin") %>" method="post">
+            <form action="<%= WebUtil.buildUrl(request, "/admin/do") %>" method="post">
                 <input type="hidden" name="operation" value="insertSubscription">
                 <input type="hidden" name="collection" value="timeline">
                 <button class="btn" type="submit">Subscribe to timeline updates</button>
@@ -217,7 +217,7 @@
             <% }%>
 
             <% if (locationSubscriptionExists) { %>
-            <form action="<%= WebUtil.buildUrl(request, "/admin") %>"
+            <form action="<%= WebUtil.buildUrl(request, "/admin/do") %>"
                   method="post">
                 <input type="hidden" name="subscriptionId" value="locations">
                 <input type="hidden" name="operation" value="deleteSubscription">
@@ -226,7 +226,7 @@
                 </button>
             </form>
             <% } else { %>
-            <form action="<%= WebUtil.buildUrl(request, "/admin") %>" method="post">
+            <form action="<%= WebUtil.buildUrl(request, "/admin/do") %>" method="post">
                 <input type="hidden" name="operation" value="insertSubscription">
                 <input type="hidden" name="collection" value="locations">
                 <button class="btn" type="submit">Subscribe to location updates</button>
@@ -237,6 +237,6 @@
 </div>
 
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-<script src="/webapp/static/bootstrap/js/bootstrap.min.js"></script>
+<script src="/static/bootstrap/js/bootstrap.min.js"></script>
 </body>
 </html>
