@@ -2,7 +2,9 @@ package com.google.glassware.model;
 
 import com.google.api.client.util.DateTime;
 import com.google.api.services.mirror.model.Location;
+import com.google.glassware.PMF;
 
+import javax.jdo.PersistenceManager;
 import javax.jdo.annotations.PersistenceCapable;
 import javax.jdo.annotations.Persistent;
 import javax.jdo.annotations.PrimaryKey;
@@ -35,6 +37,18 @@ public class UserLastLocation {
         accuracy = location.getAccuracy();
         DateTime timestamp = location.getTimestamp();
         date = new Date(timestamp.getValue());
+    }
+
+    public static UserLastLocation getUserLastLocation(String userToken) {
+        PersistenceManager pm = PMF.get().getPersistenceManager();
+
+        try {
+            return pm.getObjectById(UserLastLocation.class, userToken);
+        } catch (RuntimeException e) {
+            return null;
+        } finally {
+            pm.close();
+        }
     }
 
     public String getUserToken() {

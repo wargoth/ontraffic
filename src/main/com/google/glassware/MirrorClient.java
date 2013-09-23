@@ -30,14 +30,19 @@ import com.google.api.services.mirror.Mirror;
 import com.google.api.services.mirror.model.Attachment;
 import com.google.api.services.mirror.model.Contact;
 import com.google.api.services.mirror.model.ContactsListResponse;
+import com.google.api.services.mirror.model.MenuItem;
+import com.google.api.services.mirror.model.MenuValue;
 import com.google.api.services.mirror.model.Subscription;
 import com.google.api.services.mirror.model.SubscriptionsListResponse;
 import com.google.api.services.mirror.model.TimelineItem;
 import com.google.api.services.mirror.model.TimelineListResponse;
 import com.google.common.io.ByteStreams;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 
 /**
@@ -125,7 +130,6 @@ public class MirrorClient {
    */
   public static Subscription insertSubscription(Credential credential, String callbackUrl,
       String userId, String collection) throws IOException {
-    LOG.info("Attempting to subscribe verify_token " + userId + " with callback " + callbackUrl);
 
     // Rewrite "appspot.com" to "Appspot.com" as a workaround for
     // http://b/6909300.
@@ -137,7 +141,11 @@ public class MirrorClient {
     subscription.setCallbackUrl(callbackUrl);
     subscription.setUserToken(userId);
 
-    return getMirror(credential).subscriptions().insert(subscription).execute();
+      Subscription execute = getMirror(credential).subscriptions().insert(subscription).execute();
+
+      LOG.info("Timeline subscription " + subscription.getId() + " for user " + userId + " successfully inserted");
+
+      return execute;
   }
 
   /**
@@ -164,7 +172,24 @@ public class MirrorClient {
     return getMirror(credential).timeline().insert(item).execute();
   }
 
-  /**
+    public static List<MenuItem> getDefaultMenuItems(HttpServletRequest req) {
+        List<MenuItem> menuItemList = new ArrayList<>();
+        // Built in actions
+        menuItemList.add(new MenuItem().setAction("DELETE"));
+
+//        menuItemList.add(getSubscribeAction(req));
+
+        return menuItemList;
+    }
+
+    private static MenuItem getSubscribeAction(HttpServletRequest req) {
+        // Unsubscribe action
+        List<MenuValue> menuValues = new ArrayList<>();
+        menuValues.add(new MenuValue().setIconUrl(WebUtil.buildUrl(req, "/static/images/drill.png")).setDisplayName("Drill In"));
+        return new MenuItem().setValues(menuValues).setId("drill").setAction("CUSTOM");
+    }
+
+    /**
    * Inserts an item with an attachment provided as a byte array.
    * 
    * @param credential the user's credential

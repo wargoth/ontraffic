@@ -1,10 +1,8 @@
 <%@ page import="com.google.api.client.auth.oauth2.Credential" %>
-<%@ page import="com.google.api.services.mirror.model.Contact" %>
 <%@ page import="com.google.api.services.mirror.model.TimelineItem" %>
 <%@ page import="com.google.glassware.MirrorClient" %>
-<%@ page
-        import="com.google.glassware.NewUserBootstrapper" %>
 <%@ page import="com.google.glassware.WebUtil" %>
+<%@ page import="com.google.glassware.model.UserSettings" %>
 <%@ page import="java.util.List" %>
 
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
@@ -15,9 +13,9 @@
 
     Credential credential = com.google.glassware.AuthUtil.getCredential(userId);
 
-    Contact contact = MirrorClient.getContact(credential, NewUserBootstrapper.CONTACT_ID);
-
     List<TimelineItem> timelineItems = MirrorClient.listItems(credential, 3L).getItems();
+
+    UserSettings userSettings = UserSettings.getUserSettings(userId);
 %>
 <html>
 <head>
@@ -100,23 +98,19 @@
         </div>
 
         <div class="span4">
-            <h2>Contacts</h2>
+            <h2>Status</h2>
 
-            <p>By default, this project inserts a single contact that accepts
-                all content types. Learn more about contacts
-                <a href="https://developers.google.com/glass/contacts">here</a>.</p>
-
-            <% if (contact == null) { %>
+            <% if (!userSettings.isNotificationEnabled()) { %>
             <form class="span3" action="<%= WebUtil.buildUrl(request, "/main") %>"
                   method="post">
-                <input type="hidden" name="operation" value="signup"/>
-                <button class="btn" type="submit">Sign up for updates</button>
+                <input type="hidden" name="operation" value="enable"/>
+                <button class="btn" type="submit">Enable notifications</button>
             </form>
             <% } else { %>
             <form class="span3" action="<%= WebUtil.buildUrl(request, "/main") %>"
                   method="post">
-                <input type="hidden" name="operation" value="leave"/>
-                <button class="btn" type="submit">Sign out to stop receiving updates</button>
+                <input type="hidden" name="operation" value="disable"/>
+                <button class="btn" type="submit">Disable notifications</button>
             </form>
             <% } %>
         </div>

@@ -1,8 +1,5 @@
 package com.google.glassware.model;
 
-import javax.jdo.annotations.PersistenceCapable;
-
-@PersistenceCapable
 public class LogRecord {
 
     private String locationDesc;
@@ -32,6 +29,4 @@ public class LogRecord {
     public void setLon(double lon) {
         this.lon = lon;
     }
-
-
 }

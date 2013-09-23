@@ -28,6 +28,7 @@ import com.google.api.services.mirror.model.UserAction;
 import com.google.glassware.model.LogRecord;
 import com.google.glassware.model.NearLog;
 import com.google.glassware.model.UserLastLocation;
+import com.google.glassware.model.UserSettings;
 import com.google.glassware.model.mapquest.Incident;
 import com.google.glassware.model.mapquest.TrafficResponse;
 import com.google.gson.Gson;
@@ -46,7 +47,6 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -59,7 +59,7 @@ public class NotifyServlet extends HttpServlet {
     private static final long serialVersionUID = 7257039357957674961L;
 
     private static final Logger LOG = Logger.getLogger(MainServlet.class.getSimpleName());
-    public static final int SPEED_THRESHOLD = 0; // in km/h
+    public static final int SPEED_THRESHOLD = 20; // in km/h
     public static final int DISTANCE_THRESHOLD = 10; // in km
     public static final int MAX_NEARBY_LOGS = 5;
     public static final String MAPQUEST_KEY = "Fmjtd%7Cluub2hu1n1%2Crn%3Do5-9utx1f";
@@ -155,7 +155,7 @@ public class NotifyServlet extends HttpServlet {
 
         UserLastLocation newLocation = new UserLastLocation(notification.getUserToken(), location);
 
-        UserLastLocation lastLocation = Database.getUserLastLocation(notification.getUserToken());
+        UserLastLocation lastLocation = UserLastLocation.getUserLastLocation(notification.getUserToken());
         Database.persist(newLocation);
 
         if (lastLocation == null) {
@@ -163,12 +163,18 @@ public class NotifyServlet extends HttpServlet {
             return;
         }
 
-        double speed = getSpeedKmph(lastLocation, newLocation);
+        UserSettings userSettings = UserSettings.getUserSettings(notification.getUserToken());
 
+        if (!userSettings.isNotificationEnabled()) {
+            LOG.info("Notification disabled for the current user. Exiting");
+            return;
+        }
+
+        double speed = getSpeedKmph(lastLocation, newLocation);
 
         LOG.info("Current speed is " + speed);
 
-        if (speed > SPEED_THRESHOLD) {
+        if (speed > SPEED_THRESHOLD || userSettings.isTestingAccount()) {
             onDriving(request, credential, location, speed);
         }
     }
@@ -213,10 +219,8 @@ public class NotifyServlet extends HttpServlet {
                     .append(";");
         }
 
-        List<MenuItem> menuItemList = new ArrayList<>();
-        // Built in actions
-        menuItemList.add(new MenuItem().setAction("READ_ALOUD"));
-        menuItemList.add(new MenuItem().setAction("DELETE"));
+        List<MenuItem> menuItemList = MirrorClient.getDefaultMenuItems(req);
+        menuItemList.add(0, new MenuItem().setAction("READ_ALOUD"));
 
         TimelineItem timelineItem = new TimelineItem()
                 .setHtml(html.toString())
@@ -261,12 +265,7 @@ public class NotifyServlet extends HttpServlet {
             result.add(nearLog);
         }
 
-        Collections.sort(result, new Comparator<NearLog>() {
-            @Override
-            public int compare(NearLog o1, NearLog o2) {
-                return Double.compare(o1.getDistance(), o2.getDistance());
-            }
-        });
+        Collections.sort(result);
 
         if (result.isEmpty()) {
             return result;

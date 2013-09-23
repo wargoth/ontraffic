@@ -17,67 +17,61 @@ package com.google.glassware;
 
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
-import com.google.api.services.mirror.model.*;
-import com.google.common.collect.Lists;
+import com.google.api.services.mirror.model.MenuItem;
+import com.google.api.services.mirror.model.NotificationConfig;
+import com.google.api.services.mirror.model.Subscription;
+import com.google.api.services.mirror.model.TimelineItem;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
 public class NewUserBootstrapper {
-    public static final String CONTACT_NAME = "Real-time traffic situation app";
-    public static final String CONTACT_ID = "ontraffic.appspot.com";
     private static final Logger LOG = Logger.getLogger(NewUserBootstrapper.class.getSimpleName());
 
-  public static void bootstrapNewUser(HttpServletRequest req, String userId) throws IOException {
-    Credential credential = AuthUtil.newAuthorizationCodeFlow().loadCredential(userId);
+    public static void bootstrapNewUser(HttpServletRequest req, String userId) throws IOException {
+        Credential credential = AuthUtil.newAuthorizationCodeFlow().loadCredential(userId);
 
-      Contact existingContact = MirrorClient.getContact(credential, CONTACT_ID);
-      if(existingContact != null)
-          return;
 
-      // Create contact
-      Contact starterProjectContact = getAppContact(req);
-    Contact insertedContact = MirrorClient.insertContact(credential, starterProjectContact);
-    LOG.info("Bootstrapper inserted contact " + insertedContact.getId() + " for user " + userId);
+        List<Subscription> subscriptions = MirrorClient.listSubscriptions(credential).getItems();
+        boolean timelineSubscriptionExists = false;
+        boolean locationSubscriptionExists = false;
 
-    try {
-      // Subscribe to timeline updates
-      Subscription subscription =
-          MirrorClient.insertSubscription(credential, WebUtil.buildUrl(req, "/notify"), userId,
-              "timeline");
-      LOG.info("Bootstrapper inserted timeline subscription " + subscription.getId() + " for user " + userId);
+        if (subscriptions != null) {
+            for (Subscription subscription : subscriptions) {
+                if (subscription.getId().equals("timeline")) {
+                    timelineSubscriptionExists = true;
+                }
+                if (subscription.getId().equals("locations")) {
+                    locationSubscriptionExists = true;
+                }
+            }
+        }
 
-        MirrorClient.insertSubscription(credential, WebUtil.buildUrl(req, "/notify"), userId, "locations");
+        // check if the app have already been subscribed to all necessary notifications
+        if (timelineSubscriptionExists && locationSubscriptionExists)
+            return;
 
-        LOG.info("Bootstrapper inserted locations subscription " + subscription.getId() + " for user " + userId);
-    } catch (GoogleJsonResponseException e) {
-      LOG.warning("Failed to create a subscription. Might be running on "
-          + "localhost. Details:" + e.getDetails().toPrettyString());
-    }
+        try {
+            // Subscribe to timeline updates
+            MirrorClient.insertSubscription(credential, WebUtil.buildUrl(req, "/notify"), userId, "timeline");
+            MirrorClient.insertSubscription(credential, WebUtil.buildUrl(req, "/notify"), userId, "locations");
+        } catch (GoogleJsonResponseException e) {
+            LOG.warning("Failed to create a subscription. Might be running on "
+                    + "localhost. Details:" + e.getDetails().toPrettyString());
+        }
 
-    // Send welcome timeline item
-    TimelineItem timelineItem = new TimelineItem();
-    timelineItem.setText("Welcome to the Real-time traffic situation notification app for Glass");
-    timelineItem.setNotification(new NotificationConfig().setLevel("DEFAULT"));
+        // Send welcome timeline item
+        TimelineItem timelineItem = new TimelineItem();
+        timelineItem.setText("Welcome to the Real-time traffic situation notification app for Glass");
+        timelineItem.setNotification(new NotificationConfig().setLevel("DEFAULT"));
 
-      List<MenuItem> menuItemList = new ArrayList<MenuItem>();
-      menuItemList.add(new MenuItem().setAction("DELETE"));
+        List<MenuItem> menuItemList = MirrorClient.getDefaultMenuItems(req);
 
-      timelineItem.setMenuItems(menuItemList);
+        timelineItem.setMenuItems(menuItemList);
 
-      TimelineItem insertedItem = MirrorClient.insertTimelineItem(credential, timelineItem);
-    LOG.info("Bootstrapper inserted welcome message " + insertedItem.getId() + " for user "
-        + userId);
-  }
-
-    public static Contact getAppContact(HttpServletRequest req) {
-        Contact starterProjectContact = new Contact();
-        starterProjectContact.setId(CONTACT_ID);
-        starterProjectContact.setDisplayName(CONTACT_NAME);
-        starterProjectContact.setImageUrls(Lists.newArrayList(WebUtil.buildUrl(req, "/static/images/chipotle-tube-640x360.jpg")));
-        return starterProjectContact;
+        TimelineItem insertedItem = MirrorClient.insertTimelineItem(credential, timelineItem);
+        LOG.info("Bootstrapper inserted welcome message " + insertedItem.getId() + " for user " + userId);
     }
 }

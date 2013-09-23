@@ -1,18 +1,3 @@
-/*
- * Copyright (C) 2013 Google Inc.
- * 
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- * 
- * http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
- * the License.
- */
 package com.google.glassware;
 
 import com.google.api.client.auth.oauth2.Credential;
@@ -21,12 +6,12 @@ import com.google.api.client.googleapis.batch.json.JsonBatchCallback;
 import com.google.api.client.googleapis.json.GoogleJsonError;
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.http.HttpHeaders;
-import com.google.api.services.mirror.model.Contact;
 import com.google.api.services.mirror.model.Location;
 import com.google.api.services.mirror.model.MenuItem;
 import com.google.api.services.mirror.model.MenuValue;
 import com.google.api.services.mirror.model.NotificationConfig;
 import com.google.api.services.mirror.model.TimelineItem;
+import com.google.glassware.model.UserSettings;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -93,17 +78,14 @@ public class AdminServlet extends HttpServlet {
     } else if (req.getParameter("operation").equals("insertItemWithAction")) {
         message = insertItemWithAction(req, credential);
 
-    } else if (req.getParameter("operation").equals("insertContact")) {
-        message = insertContact(req, credential);
+    } else if (req.getParameter("operation").equals("testing-enable")) {
+        message = enableTesting(userId);
 
-    } else if (req.getParameter("operation").equals("deleteContact")) {
-        message = deleteContact(req, credential);
-
+    } else if (req.getParameter("operation").equals("testing-disable")) {
+        message = disableTesting(userId);
 
     } else if (req.getParameter("operation").equals("insertItemAllUsers")) {
         message = insertItemAllUsers(req);
-
-
 
     } else if (req.getParameter("operation").equals("insertOntraffic")) {
         message = "OK";
@@ -119,6 +101,24 @@ public class AdminServlet extends HttpServlet {
     WebUtil.setFlash(req, message);
     res.sendRedirect(WebUtil.buildUrl(req, "/admin/"));
   }
+
+    private String disableTesting(String userId) {
+        UserSettings userSettings = UserSettings.getUserSettings(userId);
+        userSettings.setTestingAccount(false);
+
+        Database.persist(userSettings);
+
+        return "Testing mode disabled";
+    }
+
+    private String enableTesting(String userId) {
+        UserSettings userSettings = UserSettings.getUserSettings(userId);
+        userSettings.setTestingAccount(true);
+
+        Database.persist(userSettings);
+
+        return "Testing mode enabled";
+    }
 
     private String nop(HttpServletRequest req) {
         String message;
@@ -161,23 +161,6 @@ public class AdminServlet extends HttpServlet {
                   + " failed).";
         }
         return message;
-    }
-
-    private String deleteContact(HttpServletRequest req, Credential credential) throws IOException {
-        String message;// Insert a contact
-        LOG.fine("Deleting contact Item");
-        MirrorClient.deleteContact(credential, req.getParameter("id"));
-
-        message = "Contact has been deleted.";
-        return message;
-    }
-
-    private String insertContact(HttpServletRequest req, Credential credential) throws IOException {
-        LOG.fine("Inserting contact Item");
-        Contact contact = NewUserBootstrapper.getAppContact(req);
-        MirrorClient.insertContact(credential, contact);
-
-        return "Inserted contact: " + req.getParameter("name");
     }
 
     private String insertItemWithAction(HttpServletRequest req, Credential credential) throws IOException {
