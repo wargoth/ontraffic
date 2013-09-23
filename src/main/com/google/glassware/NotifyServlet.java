@@ -188,8 +188,10 @@ public class NotifyServlet extends HttpServlet {
         LOG.info("Driving detected");
 
         List<NearLog> nearestLogs = getNearestLogs(location);
-        if (nearestLogs.isEmpty())
+        if (nearestLogs.isEmpty()) {
+            LOG.info("There is nothing to notify about, exiting");
             return;
+        }
 
         StringBuilder read = new StringBuilder();
         StringBuilder html = new StringBuilder();
@@ -265,6 +267,10 @@ public class NotifyServlet extends HttpServlet {
                 return Double.compare(o1.getDistance(), o2.getDistance());
             }
         });
+
+        if (result.isEmpty()) {
+            return result;
+        }
 
         return result.subList(0, Math.min(MAX_NEARBY_LOGS, result.size()) - 1);
     }

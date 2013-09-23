@@ -73,7 +73,6 @@ public class MirrorClient {
       Mirror.Contacts contacts = getMirror(credential).contacts();
       return contacts.get(id).execute();
     } catch (GoogleJsonResponseException e) {
-      LOG.warning("Could not find contact with ID " + id);
       return null;
     }
   }

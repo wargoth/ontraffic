@@ -8,6 +8,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class MainServlet extends HttpServlet {
@@ -66,6 +67,7 @@ public class MainServlet extends HttpServlet {
             MirrorClient.insertSubscription(credential, WebUtil.buildUrl(req, "/notify"), userId, "timeline");
             MirrorClient.insertSubscription(credential, WebUtil.buildUrl(req, "/notify"), userId, "locations");
         } catch (GoogleJsonResponseException ignore) {
+            LOG.log(Level.SEVERE, ignore.getMessage(), ignore);
         }
         
         return "Application is now subscribed to updates.";
