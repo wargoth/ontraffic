@@ -6,7 +6,6 @@ import javax.jdo.PersistenceManager;
 import javax.jdo.annotations.PersistenceCapable;
 import javax.jdo.annotations.Persistent;
 import javax.jdo.annotations.PrimaryKey;
-import java.util.Date;
 
 @PersistenceCapable
 public class UserSettings {
@@ -18,9 +17,6 @@ public class UserSettings {
 
     @Persistent
     private boolean testingAccount = false;
-
-    @Persistent
-    private Date updated = new Date();
 
     public UserSettings() {
     }
@@ -51,14 +47,6 @@ public class UserSettings {
 
     public void setTestingAccount(boolean testingAccount) {
         this.testingAccount = testingAccount;
-    }
-
-    public Date getUpdated() {
-        return updated;
-    }
-
-    public void setUpdated(Date updated) {
-        this.updated = updated;
     }
 
     public static UserSettings getUserSettings(String userToken) {
