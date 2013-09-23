@@ -34,7 +34,7 @@ public class MainServlet extends HttpServlet {
 
     private String disableNotifications(String userId) throws IOException {
         UserSettings userSettings = UserSettings.getUserSettings(userId);
-        userSettings.setNotificationEnabled(true);
+        userSettings.setNotificationEnabled(false);
 
         Database.persist(userSettings);
 

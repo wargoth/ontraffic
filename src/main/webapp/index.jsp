@@ -16,6 +16,8 @@
     List<TimelineItem> timelineItems = MirrorClient.listItems(credential, 3L).getItems();
 
     UserSettings userSettings = UserSettings.getUserSettings(userId);
+
+    String pageUrl = WebUtil.buildUrl(request, "/main");
 %>
 <html>
 <head>
@@ -91,7 +93,7 @@
         <div class="span4">
             <h2>Timeline</h2>
 
-            <form action="<%= WebUtil.buildUrl(request, "/main") %>" method="post">
+            <form action="<%= pageUrl %>" method="post">
                 <input type="hidden" name="operation" value="cleanup">
                 <button class="btn" type="submit">Clean up timeline</button>
             </form>
@@ -101,13 +103,13 @@
             <h2>Status</h2>
 
             <% if (!userSettings.isNotificationEnabled()) { %>
-            <form class="span3" action="<%= WebUtil.buildUrl(request, "/main") %>"
+            <form class="span3" action="<%= pageUrl %>"
                   method="post">
                 <input type="hidden" name="operation" value="enable"/>
                 <button class="btn" type="submit">Enable notifications</button>
             </form>
             <% } else { %>
-            <form class="span3" action="<%= WebUtil.buildUrl(request, "/main") %>"
+            <form class="span3" action="<%= pageUrl %>"
                   method="post">
                 <input type="hidden" name="operation" value="disable"/>
                 <button class="btn" type="submit">Disable notifications</button>

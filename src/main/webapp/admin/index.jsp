@@ -36,6 +36,8 @@
     }
 
     UserSettings userSettings = UserSettings.getUserSettings(userId);
+    String pageUrl = WebUtil.buildUrl(request, "/admin/do");
+
 %>
 <html>
 <head>
@@ -132,13 +134,13 @@
                 <a href="https://developers.google.com/glass/timeline">here</a></p>
 
 
-            <form action="<%= WebUtil.buildUrl(request, "/admin/do") %>" method="post">
+            <form action="<%= pageUrl %>" method="post">
                 <input type="hidden" name="operation" value="insertItem">
                 <textarea name="message">Hello World!</textarea><br/>
                 <button class="btn" type="submit">The above message</button>
             </form>
 
-            <form action="<%= WebUtil.buildUrl(request, "/admin/do") %>" method="post">
+            <form action="<%= pageUrl %>" method="post">
                 <input type="hidden" name="operation" value="insertItem">
                 <input type="hidden" name="message" value="Chipotle says 'hi'!">
                 <input type="hidden" name="imageUrl" value="<%= appBaseUrl +
@@ -150,17 +152,17 @@
                "static/images/chipotle-tube-640x360.jpg" %>">
                 </button>
             </form>
-            <form action="<%= WebUtil.buildUrl(request, "/admin/do") %>" method="post">
+            <form action="<%= pageUrl %>" method="post">
                 <input type="hidden" name="operation" value="insertItemWithAction">
                 <button class="btn" type="submit">A card you can reply to</button>
             </form>
             <hr>
-            <form action="<%= WebUtil.buildUrl(request, "/admin/do") %>" method="post">
+            <form action="<%= pageUrl %>" method="post">
                 <input type="hidden" name="operation" value="insertItemAllUsers">
                 <button class="btn" type="submit">A card to all users</button>
             </form>
 
-            <form action="<%= WebUtil.buildUrl(request, "/admin/do") %>" method="post">
+            <form action="<%= pageUrl %>" method="post">
                 <input type="hidden" name="operation" value="insertOntraffic">
                 <button class="btn" type="submit">Send ontraffic card</button>
             </form>
@@ -170,13 +172,13 @@
             <h2>Testing mode</h2>
 
             <% if (!userSettings.isTestingAccount()) { %>
-            <form class="span3" action="<%= WebUtil.buildUrl(request, "/main") %>"
+            <form class="span3" action="<%= pageUrl %>"
                   method="post">
                 <input type="hidden" name="operation" value="testing-enable"/>
                 <button class="btn" type="submit">Enable testing mode</button>
             </form>
             <% } else { %>
-            <form class="span3" action="<%= WebUtil.buildUrl(request, "/main") %>"
+            <form class="span3" action="<%= pageUrl %>"
                   method="post">
                 <input type="hidden" name="operation" value="testing-disable"/>
                 <button class="btn" type="submit">Disable testing mode</button>
@@ -195,7 +197,7 @@
                 not work on localhost.</p>
 
             <% if (timelineSubscriptionExists) { %>
-            <form action="<%= WebUtil.buildUrl(request, "/admin/do") %>"
+            <form action="<%= pageUrl %>"
                   method="post">
                 <input type="hidden" name="subscriptionId" value="timeline">
                 <input type="hidden" name="operation" value="deleteSubscription">
@@ -204,7 +206,7 @@
                 </button>
             </form>
             <% } else { %>
-            <form action="<%= WebUtil.buildUrl(request, "/admin/do") %>" method="post">
+            <form action="<%= pageUrl %>" method="post">
                 <input type="hidden" name="operation" value="insertSubscription">
                 <input type="hidden" name="collection" value="timeline">
                 <button class="btn" type="submit">Subscribe to timeline updates</button>
@@ -212,7 +214,7 @@
             <% }%>
 
             <% if (locationSubscriptionExists) { %>
-            <form action="<%= WebUtil.buildUrl(request, "/admin/do") %>"
+            <form action="<%= pageUrl %>"
                   method="post">
                 <input type="hidden" name="subscriptionId" value="locations">
                 <input type="hidden" name="operation" value="deleteSubscription">
@@ -221,7 +223,7 @@
                 </button>
             </form>
             <% } else { %>
-            <form action="<%= WebUtil.buildUrl(request, "/admin/do") %>" method="post">
+            <form action="<%= pageUrl %>" method="post">
                 <input type="hidden" name="operation" value="insertSubscription">
                 <input type="hidden" name="collection" value="locations">
                 <button class="btn" type="submit">Subscribe to location updates</button>
