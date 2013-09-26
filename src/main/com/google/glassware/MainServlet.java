@@ -29,7 +29,7 @@ public class MainServlet extends HttpServlet {
             message = disableNotifications(userId);
         }
         WebUtil.setFlash(req, message);
-        res.sendRedirect(WebUtil.buildUrl(req, "/"));
+        res.sendRedirect(WebUtil.buildUrl(req, "/profile/"));
     }
 
     private String disableNotifications(String userId) throws IOException {
