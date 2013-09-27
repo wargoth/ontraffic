@@ -12,7 +12,7 @@ import java.util.logging.Logger;
 public class MainServlet extends HttpServlet {
 
     private static final Logger LOG = Logger.getLogger(MainServlet.class.getSimpleName());
-    public static final String APPLICATION_NAME = "Real-time traffic situation notification app for Glass";
+    public static final String APPLICATION_NAME = "Real-time traffic condition app for Google Glass";
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException {

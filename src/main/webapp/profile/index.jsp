@@ -18,7 +18,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-    <title>Real-time traffic situation app for Google Glass</title>
+    <title>Real-time traffic condition app for Google Glass</title>
 
     <link href="../static/bootstrap/css/bootstrap.min.css" rel="stylesheet">
     <link href="../static/css/app.css" rel="stylesheet">
@@ -34,7 +34,7 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
-            <span class="navbar-brand">Real-time traffic situation app for Google Glass</span>
+            <span class="navbar-brand">Real-time traffic condition app for Google Glass</span>
         </div>
         <div class="navbar-collapse collapse">
             <form class="navbar-form navbar-right" action="/signout" method="post">
@@ -48,8 +48,7 @@
     <div class="container">
         <h1>Profile</h1>
 
-        <p>This is not much to set up here, the application is already on duty. There might be more settings to come as
-            application evolves.</p>
+        <p>The app is ready to go! There might be more settings to come as the application evolves.</p>
 
         <p>
                 <% if (!userSettings.isNotificationEnabled()) { %>
