@@ -1,30 +1,115 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title></title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <title>Real-time traffic situation app for Google Glass</title>
+
+    <link href="static/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="static/css/app.css" rel="stylesheet">
 </head>
 <body>
 
+<div class="navbar-wrapper">
+    <div class="container">
 
-<a href="/profile/">Login</a>
+        <div class="navbar navbar-inverse navbar-static-top">
+            <div class="container">
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                </div>
+                <div class="navbar-collapse collapse">
+                    <ul class="nav navbar-nav navbar-right">
+                        <li><a href="/profile/">Login</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
 
 
-<h1>Real-time traffic situation adviser application for Google Glass.</h1>
+<div id="myCarousel" class="carousel slide">
+    <div class="carousel-inner">
+        <div class="item active">
+            <img src="static/images/sf-traf.jpg" alt="Real-time traffic situation adviser application for Google Glass">
 
-<img src="static/images/sf-traf.jpg" alt="Real-time traffic situation adviser application for Google Glass"/>
+            <div class="container">
+                <div class="carousel-caption">
+                    <h1>Real-time traffic situation app for Google Glass.</h1>
 
-<p>Alerts you about nearby traffic accidents, road work and other events which could affect your usual commute.</p>
+                    <p><a class="btn btn-large btn-primary" href="/profile/">Try it with your Google Glass</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
-<img src="static/images/sf-traf-text.png" alt=""/>
+<div class="container marketing">
 
-<p>Let's you make decision which route to take before you get into traffic jam.</p>
+    <div class="row featurette">
+        <div class="col-md-7">
+            <h2 class="featurette-heading">For everyday commute</h2>
 
-<ul>
-    <li>activates only when you're driving</li>
-    <li>alerts you about current traffic accidents, road closures and road constructions nearby</li>
-    <li>shows them on map</li>
-    <li>or reads them aloud</li>
-</ul>
+            <p class="lead">Alerts you about nearby traffic accidents, road work and other events which could affect
+                your usual commute.</p>
+        </div>
+        <div class="col-md-5">
+            <img src="static/images/sf-traf-text.png" alt="Traffic in San Francisco"
+                 class="featurette-image img-responsive"/>
+        </div>
+    </div>
+
+    <hr class="featurette-divider">
+
+    <div class="row featurette">
+        <div class="col-md-5">
+            <img class="featurette-image img-responsive" src="static/images/menu.jpg" alt="Generic placeholder image">
+        </div>
+        <div class="col-md-7">
+            <h2 class="featurette-heading">Lets you make decision which route to take before you get into traffic jam.
+            </h2>
+
+            <p class="lead"></p>
+
+            <ul>
+                <li>activates only when you're driving</li>
+                <li>alerts you about current traffic accidents, road closures and road constructions nearby</li>
+                <li>shows them on map</li>
+                <li>and reads them aloud</li>
+            </ul>
+        </div>
+    </div>
+
+    <hr class="featurette-divider">
+
+    <div class="row featurette">
+        <div class="col-md-7">
+            <h2 class="featurette-heading">More features are coming</h2>
+
+            <p class="lead">And I'm listening for suggestions on how to improve the application. Have an idea, feedback?
+                Don't hesitate to <a href="mailto:yavalek@gmail.com">contact me &#9993;</a></p>
+        </div>
+        <div class="col-md-5">
+        </div>
+    </div>
+
+    <hr class="featurette-divider">
+
+    <footer>
+        <p class="pull-right"><a href="#">Back to top</a></p>
+    </footer>
+
+</div>
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script src="static/bootstrap/js/bootstrap.min.js"></script>
 
 </body>
 </html>

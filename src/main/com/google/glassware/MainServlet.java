@@ -23,8 +23,6 @@ public class MainServlet extends HttpServlet {
 
         if (req.getParameter("operation").equals("enable")) {
             message = enableNotifications(userId);
-        } else if (req.getParameter("operation").equals("cleanup")) {
-            message = cleanAllMessages(credential);
         } else if (req.getParameter("operation").equals("disable")) {
             message = disableNotifications(userId);
         }
@@ -50,8 +48,4 @@ public class MainServlet extends HttpServlet {
         return "Notifications have been enabled";
     }
 
-    private String cleanAllMessages(Credential credential) throws IOException {
-        int count = MirrorClient.cleanUpTimeline(credential);
-        return String.format("Timeline successfully cleaned up. Removed %d timeline items", count);
-    }
 }

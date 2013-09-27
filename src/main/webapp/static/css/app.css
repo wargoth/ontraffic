@@ -1,0 +1,22 @@
+#myCarousel img {
+    margin: 0 auto;
+}
+
+#myCarousel {
+    background: gray;
+}
+
+.carousel {
+    margin-bottom: 30px;
+    margin-top: -90px;
+    padding-top: 90px;
+    padding-bottom: 30px;
+}
+
+.navbar-wrapper .navbar {
+    border-radius: 4px;
+}
+
+.button-icon {
+    max-width: 75px;
+}

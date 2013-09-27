@@ -70,6 +70,8 @@ public class AdminServlet extends HttpServlet {
 
     } else if (req.getParameter("operation").equals("deleteSubscription")) {
         message = deleteSubscription(req, credential);
+    } else if (req.getParameter("operation").equals("cleanup")) {
+        message = cleanAllMessages(credential);
 
 
     } else if (req.getParameter("operation").equals("insertItem")) {
@@ -234,5 +236,10 @@ public class AdminServlet extends HttpServlet {
           message = "Failed to subscribe. Check your log for details";
         }
         return message;
+    }
+
+    private String cleanAllMessages(Credential credential) throws IOException {
+        int count = MirrorClient.cleanUpTimeline(credential);
+        return String.format("Timeline successfully cleaned up. Removed %d timeline items", count);
     }
 }
