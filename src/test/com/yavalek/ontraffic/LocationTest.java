@@ -1,6 +1,7 @@
-package com.google.glassware;
+package com.yavalek.ontraffic;
 
-import com.google.glassware.model.UserLastLocation;
+import com.yavalek.ontraffic.model.UserLastLocation;
+import com.yavalek.ontraffic.NotifyServlet;
 import org.junit.Test;
 
 import java.util.Calendar;

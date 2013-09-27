@@ -1,6 +1,6 @@
-package com.google.glassware.model;
+package com.yavalek.ontraffic.model;
 
-import com.google.glassware.PMF;
+import com.yavalek.ontraffic.PMF;
 
 import javax.jdo.PersistenceManager;
 import javax.jdo.annotations.PersistenceCapable;

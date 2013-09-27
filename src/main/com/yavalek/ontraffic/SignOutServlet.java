@@ -1,4 +1,4 @@
-package com.google.glassware;
+package com.yavalek.ontraffic;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;

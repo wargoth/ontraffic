@@ -1,8 +1,8 @@
-package com.google.glassware.model;
+package com.yavalek.ontraffic.model;
 
 import com.google.api.client.util.DateTime;
 import com.google.api.services.mirror.model.Location;
-import com.google.glassware.PMF;
+import com.yavalek.ontraffic.PMF;
 
 import javax.jdo.PersistenceManager;
 import javax.jdo.annotations.PersistenceCapable;

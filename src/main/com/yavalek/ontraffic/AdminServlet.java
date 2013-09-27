@@ -1,4 +1,4 @@
-package com.google.glassware;
+package com.yavalek.ontraffic;
 
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.googleapis.batch.BatchRequest;
@@ -11,7 +11,7 @@ import com.google.api.services.mirror.model.MenuItem;
 import com.google.api.services.mirror.model.MenuValue;
 import com.google.api.services.mirror.model.NotificationConfig;
 import com.google.api.services.mirror.model.TimelineItem;
-import com.google.glassware.model.UserSettings;
+import com.yavalek.ontraffic.model.UserSettings;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;

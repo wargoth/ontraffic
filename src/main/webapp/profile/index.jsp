@@ -1,10 +1,11 @@
-<%@ page import="com.google.glassware.WebUtil" %>
-<%@ page import="com.google.glassware.model.UserSettings" %>
+<%@ page import="com.yavalek.ontraffic.WebUtil" %>
+<%@ page import="com.yavalek.ontraffic.model.UserSettings" %>
+<%@ page import="com.yavalek.ontraffic.AuthUtil" %>
 
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
 <%
-    String userId = com.google.glassware.AuthUtil.getUserId(request);
+    String userId = AuthUtil.getUserId(request);
 
     UserSettings userSettings = UserSettings.getUserSettings(userId);
 

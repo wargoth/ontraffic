@@ -1,16 +1,17 @@
 <%@ page import="com.google.api.client.auth.oauth2.Credential" %>
 <%@ page import="com.google.api.services.mirror.model.Subscription" %>
 <%@ page import="com.google.api.services.mirror.model.TimelineItem" %>
-<%@ page import="com.google.glassware.MirrorClient" %>
-<%@ page import="com.google.glassware.WebUtil" %>
-<%@ page import="com.google.glassware.model.UserSettings" %>
+<%@ page import="com.yavalek.ontraffic.MirrorClient" %>
+<%@ page import="com.yavalek.ontraffic.WebUtil" %>
+<%@ page import="com.yavalek.ontraffic.model.UserSettings" %>
 <%@ page import="java.util.List" %>
+<%@ page import="com.yavalek.ontraffic.AuthUtil" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%
-    String userId = com.google.glassware.AuthUtil.getUserId(request);
+    String userId = AuthUtil.getUserId(request);
     String appBaseUrl = WebUtil.buildUrl(request, "/");
 
-    Credential credential = com.google.glassware.AuthUtil.getCredential(userId);
+    Credential credential = AuthUtil.getCredential(userId);
 
     List<TimelineItem> timelineItems = MirrorClient.listItems(credential, 3L).getItems();
 

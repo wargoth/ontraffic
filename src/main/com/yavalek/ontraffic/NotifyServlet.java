@@ -13,7 +13,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.glassware;
+package com.yavalek.ontraffic;
 
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.json.JsonFactory;
@@ -25,12 +25,12 @@ import com.google.api.services.mirror.model.Notification;
 import com.google.api.services.mirror.model.NotificationConfig;
 import com.google.api.services.mirror.model.TimelineItem;
 import com.google.api.services.mirror.model.UserAction;
-import com.google.glassware.model.LogRecord;
-import com.google.glassware.model.NearLog;
-import com.google.glassware.model.UserLastLocation;
-import com.google.glassware.model.UserSettings;
-import com.google.glassware.model.mapquest.Incident;
-import com.google.glassware.model.mapquest.TrafficResponse;
+import com.yavalek.ontraffic.model.LogRecord;
+import com.yavalek.ontraffic.model.NearLog;
+import com.yavalek.ontraffic.model.UserLastLocation;
+import com.yavalek.ontraffic.model.UserSettings;
+import com.yavalek.ontraffic.model.mapquest.Incident;
+import com.yavalek.ontraffic.model.mapquest.TrafficResponse;
 import com.google.gson.Gson;
 
 import javax.servlet.ServletException;

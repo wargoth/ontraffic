@@ -1,4 +1,4 @@
-package com.google.glassware.model;
+package com.yavalek.ontraffic.model;
 
 public class LogRecord {
 

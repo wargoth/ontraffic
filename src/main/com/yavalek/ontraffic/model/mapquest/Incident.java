@@ -1,4 +1,4 @@
-package com.google.glassware.model.mapquest;
+package com.yavalek.ontraffic.model.mapquest;
 
 public class Incident {
     public String fullDesc;

@@ -7,7 +7,7 @@
   <!-- filters -->
   <filter>
     <filter-name>authFilter</filter-name>
-    <filter-class>com.google.glassware.AuthFilter</filter-class>
+    <filter-class>com.yavalek.ontraffic.AuthFilter</filter-class>
   </filter>
   <filter-mapping>
     <filter-name>authFilter</filter-name>
@@ -17,7 +17,7 @@
   <!-- servlets -->
   <servlet>
     <servlet-name>main</servlet-name>
-    <servlet-class>com.google.glassware.MainServlet</servlet-class>
+    <servlet-class>com.yavalek.ontraffic.MainServlet</servlet-class>
   </servlet>
   <servlet-mapping>
     <servlet-name>main</servlet-name>
@@ -26,7 +26,7 @@
 
   <servlet>
     <servlet-name>oauth2callback</servlet-name>
-    <servlet-class>com.google.glassware.AuthServlet</servlet-class>
+    <servlet-class>com.yavalek.ontraffic.AuthServlet</servlet-class>
   </servlet>
   <servlet-mapping>
     <servlet-name>oauth2callback</servlet-name>
@@ -35,7 +35,7 @@
 
   <servlet>
     <servlet-name>notify</servlet-name>
-    <servlet-class>com.google.glassware.NotifyServlet</servlet-class>
+    <servlet-class>com.yavalek.ontraffic.NotifyServlet</servlet-class>
   </servlet>
   <servlet-mapping>
     <servlet-name>notify</servlet-name>
@@ -44,7 +44,7 @@
 
   <servlet>
     <servlet-name>attachmentproxy</servlet-name>
-    <servlet-class>com.google.glassware.AttachmentProxyServlet</servlet-class>
+    <servlet-class>com.yavalek.ontraffic.AttachmentProxyServlet</servlet-class>
   </servlet>
   <servlet-mapping>
     <servlet-name>attachmentproxy</servlet-name>
@@ -53,7 +53,7 @@
 
   <servlet>
     <servlet-name>signout</servlet-name>
-    <servlet-class>com.google.glassware.SignOutServlet</servlet-class>
+    <servlet-class>com.yavalek.ontraffic.SignOutServlet</servlet-class>
   </servlet>
   <servlet-mapping>
     <servlet-name>signout</servlet-name>
@@ -61,7 +61,7 @@
   </servlet-mapping>
     <servlet>
         <servlet-name>AdminServlet</servlet-name>
-        <servlet-class>com.google.glassware.AdminServlet</servlet-class>
+        <servlet-class>com.yavalek.ontraffic.AdminServlet</servlet-class>
     </servlet>
     <servlet-mapping>
         <servlet-name>AdminServlet</servlet-name>

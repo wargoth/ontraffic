@@ -1,4 +1,4 @@
-package com.google.glassware;
+package com.yavalek.ontraffic;
 
 import javax.jdo.JDOHelper;
 import javax.jdo.PersistenceManagerFactory;

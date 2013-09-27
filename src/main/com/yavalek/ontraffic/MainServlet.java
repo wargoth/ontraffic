@@ -1,7 +1,7 @@
-package com.google.glassware;
+package com.yavalek.ontraffic;
 
 import com.google.api.client.auth.oauth2.Credential;
-import com.google.glassware.model.UserSettings;
+import com.yavalek.ontraffic.model.UserSettings;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
