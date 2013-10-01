@@ -40,8 +40,10 @@ public class NewUserBootstrapper {
 
         try {
             // Subscribe to timeline updates
-            MirrorClient.insertSubscription(credential, WebUtil.buildUrl(req, "/notify"), userId, "timeline");
-            MirrorClient.insertSubscription(credential, WebUtil.buildUrl(req, "/notify"), userId, "locations");
+            String callbackUrl = WebUtil.httpsUrl(req, "/notify");
+            LOG.info("Inserting subscription with callback URL: " + callbackUrl);
+            MirrorClient.insertSubscription(credential, callbackUrl, userId, "timeline");
+            MirrorClient.insertSubscription(credential, callbackUrl, userId, "locations");
         } catch (GoogleJsonResponseException e) {
             LOG.warning("Failed to create a subscription. Might be running on "
                     + "localhost. Details:" + e.getDetails().toPrettyString());
