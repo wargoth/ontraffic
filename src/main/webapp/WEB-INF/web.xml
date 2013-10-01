@@ -43,15 +43,6 @@
   </servlet-mapping>
 
   <servlet>
-    <servlet-name>attachmentproxy</servlet-name>
-    <servlet-class>com.yavalek.ontraffic.AttachmentProxyServlet</servlet-class>
-  </servlet>
-  <servlet-mapping>
-    <servlet-name>attachmentproxy</servlet-name>
-    <url-pattern>/attachmentproxy</url-pattern>
-  </servlet-mapping>
-
-  <servlet>
     <servlet-name>signout</servlet-name>
     <servlet-class>com.yavalek.ontraffic.SignOutServlet</servlet-class>
   </servlet>
