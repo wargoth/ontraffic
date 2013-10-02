@@ -62,7 +62,7 @@
         </div>
         <div class="navbar-collapse collapse">
             <form class="navbar-form navbar-right" action="/signout" method="post">
-                <button type="submit" class="btn btn-default">Sign out</button>
+                <button type="submit" class="btn">Sign out</button>
             </form>
         </div>
         <!--/.navbar-collapse -->
@@ -116,7 +116,7 @@
             <form action="<%= pageUrl %>" method="post">
                 <input type="hidden" name="operation" value="insertItem">
                 <textarea name="message">Hello World!</textarea><br/>
-                <button class="btn btn-default" type="submit">The above message</button>
+                <button class="btn" type="submit">The above message</button>
             </form>
             </p>
 
@@ -129,7 +129,7 @@
                "static/images/chipotle-tube-640x360.jpg" %>">
                 <input type="hidden" name="contentType" value="image/jpeg">
 
-                <button class="btn btn-default" type="submit">A picture
+                <button class="btn" type="submit">A picture
                     <img class="button-icon" src="<%= appBaseUrl +
                "static/images/chipotle-tube-640x360.jpg" %>">
                 </button>
@@ -139,16 +139,22 @@
 
             <form action="<%= pageUrl %>" method="post">
                 <input type="hidden" name="operation" value="insertItemWithAction">
-                <button class="btn btn-default" type="submit">A card you can reply to</button>
+                <button class="btn" type="submit">A card you can reply to</button>
             </form>
             </p>
             <hr>
 
             <p>
-
             <form action="<%= pageUrl %>" method="post">
-                <input type="hidden" name="operation" value="insertOntraffic">
-                <button class="btn btn-default" type="submit">Send ontraffic card</button>
+                <input type="hidden" name="operation" value="insertOntrafficSF">
+                <button class="btn" type="submit">Send SF ontraffic card</button>
+            </form>
+            </p>
+
+            <p>
+            <form action="<%= pageUrl %>" method="post">
+                <input type="hidden" name="operation" value="insertOntrafficLondon">
+                <button class="btn" type="submit">Send London ontraffic card</button>
             </form>
             </p>
 
@@ -170,13 +176,13 @@
             <form class="span3" action="<%= pageUrl %>"
                   method="post">
                 <input type="hidden" name="operation" value="testing-enable"/>
-                <button class="btn btn-default" type="submit">Enable testing mode</button>
+                <button class="btn" type="submit">Enable testing mode</button>
             </form>
             <% } else { %>
             <form class="span3" action="<%= pageUrl %>"
                   method="post">
                 <input type="hidden" name="operation" value="testing-disable"/>
-                <button class="btn btn-default" type="submit">Disable testing mode</button>
+                <button class="btn" type="submit">Disable testing mode</button>
             </form>
             <% } %>
             </p>
@@ -199,7 +205,7 @@
                   method="post">
                 <input type="hidden" name="subscriptionId" value="timeline">
                 <input type="hidden" name="operation" value="deleteSubscription">
-                <button class="btn btn-default" type="submit" class="delete">Unsubscribe from
+                <button class="btn" type="submit" class="delete">Unsubscribe from
                     timeline updates
                 </button>
             </form>
@@ -207,7 +213,7 @@
             <form action="<%= pageUrl %>" method="post">
                 <input type="hidden" name="operation" value="insertSubscription">
                 <input type="hidden" name="collection" value="timeline">
-                <button class="btn btn-default" type="submit">Subscribe to timeline updates</button>
+                <button class="btn" type="submit">Subscribe to timeline updates</button>
             </form>
             <% }%>
             </p>
@@ -219,7 +225,7 @@
                   method="post">
                 <input type="hidden" name="subscriptionId" value="locations">
                 <input type="hidden" name="operation" value="deleteSubscription">
-                <button class="btn btn-default" type="submit" class="delete">Unsubscribe from
+                <button class="btn" type="submit" class="delete">Unsubscribe from
                     location updates
                 </button>
             </form>
@@ -227,7 +233,7 @@
             <form action="<%= pageUrl %>" method="post">
                 <input type="hidden" name="operation" value="insertSubscription">
                 <input type="hidden" name="collection" value="locations">
-                <button class="btn btn-default" type="submit">Subscribe to location updates</button>
+                <button class="btn" type="submit">Subscribe to location updates</button>
             </form>
             <% }%>
             </p>

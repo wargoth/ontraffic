@@ -17,7 +17,7 @@ import java.util.logging.Logger;
 public class MapquestProvider implements TrafficServiceProvider {
     public static final String MAPQUEST_KEY = "Fmjtd%7Cluub2hu1n1%2Crn%3Do5-9utx1f";
 
-    private static final Logger LOG = Logger.getLogger(MainServlet.class.getSimpleName());
+    private static final Logger LOG = Logger.getLogger(MapquestProvider.class.getSimpleName());
 
     public StringBuilder getMapLink(Location location, List<NearLog> nearestLogs, HttpServletRequest reqest) {
         StringBuilder result = new StringBuilder();
@@ -26,7 +26,7 @@ public class MapquestProvider implements TrafficServiceProvider {
                 .append("&type=map")
                 .append("&pois=pcenter,").append(Utils.toStr(location));
 
-        if (!nearestLogs.isEmpty()) {
+        if (!nearestLogs.isEmpty() && AUTOZOOM_ENABLED) {
             result.append("&xis=").append(WebUtil.buildUrl(reqest, "/static/images/transparent.png")).append(",").append(nearestLogs.size());
 
             for (NearLog log : nearestLogs) {

@@ -25,6 +25,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Writer;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -40,8 +41,6 @@ public class NotifyServlet extends HttpServlet {
     public static final int DISTANCE_THRESHOLD = 10; // in km
     public static final int MAX_NEARBY_LOGS = 5;
     public static final double EARTH_R = 6371.0;
-
-    private TrafficServiceProvider trafficProvider = new BingProvider();
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
@@ -161,6 +160,8 @@ public class NotifyServlet extends HttpServlet {
                              double speed, UserSettings userSettings) throws IOException {
         LOG.info("Driving detected");
 
+        TrafficServiceProvider trafficProvider = getProvider(location);
+
         List<NearLog> nearestLogs = trafficProvider.getNearestLogs(location);
 
         StringBuilder read = new StringBuilder();
@@ -186,6 +187,18 @@ public class NotifyServlet extends HttpServlet {
                 .setNotification(new NotificationConfig().setLevel("DEFAULT"))
                 .setLocation(location);
         insertOrUpdate(credential, userSettings, timelineItem);
+    }
+
+    private TrafficServiceProvider getProvider(Location location) {
+        try {
+            String country = BingProvider.getCountry(location);
+            if (country.equalsIgnoreCase("United States") || country.equalsIgnoreCase("Canada"))
+                return new MapquestProvider();
+        } catch (IOException e) {
+            LOG.log(Level.SEVERE, e.getMessage(), e);
+        }
+
+        return new BingProvider();
     }
 
     private void populateSpeakableText(List<NearLog> nearestLogs, StringBuilder read) {

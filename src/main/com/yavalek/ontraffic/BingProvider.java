@@ -15,13 +15,28 @@ import java.util.List;
 import java.util.logging.Logger;
 
 public class BingProvider implements TrafficServiceProvider {
-    private static final Logger LOG = Logger.getLogger(MainServlet.class.getSimpleName());
+    private static final Logger LOG = Logger.getLogger(BingProvider.class.getSimpleName());
 
     public static final String BING_KEY = "AhyUKYbb6FvwtAtQEZSuRNdYmRJoAD50j-s7Sr2h94snimHFb6cjs5h8yy7u3gZ3";
 
+    public static String getCountry(Location location) throws IOException {
+        StringBuilder req = new StringBuilder();
+        req.append("http://dev.virtualearth.net/REST/v1/Locations/")
+                .append(Utils.toStr(location))
+                .append("?key=").append(BING_KEY)
+                .append("&o=json");
+
+        URL url = new URL(req.toString());
+        Gson gson = new Gson();
+
+        GeoLocationResponse response = gson.fromJson(new InputStreamReader(url.openStream()), GeoLocationResponse.class);
+
+        return response.getCountry();
+    }
+
     public StringBuilder getMapLink(Location location, List<NearLog> nearestLogs, HttpServletRequest reqest) {
         StringBuilder result = new StringBuilder();
-        if (!nearestLogs.isEmpty()) {
+        if (!nearestLogs.isEmpty() && AUTOZOOM_ENABLED) {
             result.append("http://dev.virtualearth.net/REST/v1/Imagery/Map/Road");
         } else {
             result.append("http://dev.virtualearth.net/REST/v1/Imagery/Map/Road/")
@@ -61,7 +76,7 @@ public class BingProvider implements TrafficServiceProvider {
         StringBuilder req = new StringBuilder();
         req.append("http://dev.virtualearth.net/REST/v1/Traffic/Incidents/")
                 .append(Utils.toStr(bounds[0])).append(",").append(Utils.toStr(bounds[1]))
-                .append("?key=" + BING_KEY)
+                .append("?key=").append(BING_KEY)
                 .append("&severity=3,4")
                 .append("&type=1,2,3,8,9,10,11");
 
@@ -74,24 +89,22 @@ public class BingProvider implements TrafficServiceProvider {
 
         List<NearLog> result = new ArrayList<>();
 
-        for (Totals incident : response.resourceSets) {
-            for (TrafficIncident resource : incident.resources) {
-                NearLog nearLog = new NearLog();
-                LogRecord logRecord = new LogRecord();
+        for (TrafficIncident incident : response.getIncedents()) {
+            NearLog nearLog = new NearLog();
+            LogRecord logRecord = new LogRecord();
 
-                nearLog.setLogRecord(logRecord);
+            nearLog.setLogRecord(logRecord);
 
-                double lat = resource.point.coordinates[0];
-                double lng = resource.point.coordinates[1];
+            double lat = incident.point.coordinates[0];
+            double lng = incident.point.coordinates[1];
 
-                nearLog.setDistance(Utils.toMiles(Utils.getDistance(lat, lng, location.getLatitude(), location.getLongitude())));
+            nearLog.setDistance(Utils.toMiles(Utils.getDistance(lat, lng, location.getLatitude(), location.getLongitude())));
 
-                logRecord.setLat(lat);
-                logRecord.setLon(lng);
-                logRecord.setLocationDesc(resource.getFullDescription());
+            logRecord.setLat(lat);
+            logRecord.setLon(lng);
+            logRecord.setLocationDesc(incident.getFullDescription());
 
-                result.add(nearLog);
-            }
+            result.add(nearLog);
         }
 
         Collections.sort(result);
@@ -104,12 +117,15 @@ public class BingProvider implements TrafficServiceProvider {
     }
 
     public static class TrafficResponse {
-        public List<Totals> resourceSets;
+        public TrafficTotals[] resourceSets;
 
+        public TrafficIncident[] getIncedents() {
+            return resourceSets.length == 0 ? new TrafficIncident[0] : resourceSets[0].resources;
+        }
     }
 
-    public static class Totals {
-        public List<TrafficIncident> resources;
+    public static class TrafficTotals {
+        public TrafficIncident[] resources;
     }
 
     public static class TrafficIncident {
@@ -168,5 +184,33 @@ public class BingProvider implements TrafficServiceProvider {
 
     public static class Point {
         double[] coordinates;
+    }
+
+    public static class GeoLocationResponse {
+        public GeoLocationTotals[] resourceSets;
+
+        public String getCountry() {
+            return resourceSets.length == 0 ? "" : resourceSets[0].getCountry();
+        }
+    }
+
+    public static class GeoLocationTotals {
+        public GeoLocationResource[] resources;
+
+        public String getCountry() {
+            return resources.length == 0 ? "" : resources[0].getCountry();
+        }
+    }
+
+    public static class GeoLocationResource {
+        public GeoLocationAddress address;
+
+        public String getCountry() {
+            return address == null ? "" : address.countryRegion;
+        }
+    }
+
+    private static class GeoLocationAddress {
+        public String countryRegion;
     }
 }

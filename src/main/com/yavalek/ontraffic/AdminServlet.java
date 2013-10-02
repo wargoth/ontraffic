@@ -82,12 +82,23 @@ public class AdminServlet extends HttpServlet {
     } else if (req.getParameter("operation").equals("testing-disable")) {
         message = disableTesting(userId);
 
-    } else if (req.getParameter("operation").equals("insertOntraffic")) {
+    } else if (req.getParameter("operation").equals("insertOntrafficSF")) {
         message = "OK";
 
         Location location = new Location();
         location.setLatitude(37.778313);
         location.setLongitude(-122.419333);
+
+        UserSettings userSettings = UserSettings.getUserSettings(userId);
+
+        new NotifyServlet().onDriving(req, credential, location, 0, userSettings);
+
+    } else if (req.getParameter("operation").equals("insertOntrafficLondon")) {
+        message = "OK";
+
+        Location location = new Location();
+        location.setLatitude(51.511734);
+        location.setLongitude(-0.141549);
 
         UserSettings userSettings = UserSettings.getUserSettings(userId);
 

@@ -7,7 +7,9 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 public interface TrafficServiceProvider {
-    public StringBuilder getMapLink(Location location, List<NearLog> nearestLogs, HttpServletRequest reqest);
+    boolean AUTOZOOM_ENABLED = false;
 
-    public List<NearLog> getNearestLogs(Location location);
+    StringBuilder getMapLink(Location location, List<NearLog> nearestLogs, HttpServletRequest reqest);
+
+    List<NearLog> getNearestLogs(Location location);
 }
