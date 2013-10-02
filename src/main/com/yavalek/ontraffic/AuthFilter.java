@@ -34,15 +34,15 @@ public class AuthFilter implements Filter {
 
         // Redirect to https when on App Engine since subscriptions only work over
         // https
-        if (httpRequest.getServerName().contains("appspot.com")
-                && httpRequest.getScheme().equals("http")) {
-
-            LOG.info("Redirecting to https");
-
-            httpResponse.sendRedirect(httpRequest.getRequestURL().toString()
-                    .replaceFirst("http", "https"));
-            return;
-        }
+//        if (httpRequest.getServerName().contains("appspot.com")
+//                && httpRequest.getScheme().equals("http")) {
+//
+//            LOG.info("Redirecting to https");
+//
+//            httpResponse.sendRedirect(httpRequest.getRequestURL().toString()
+//                    .replaceFirst("http", "https"));
+//            return;
+//        }
 
         // Are we in the middle of an auth flow? IF so skip check.
         if (httpRequest.getRequestURI().equals("/oauth2callback")) {

@@ -160,7 +160,7 @@ public class NotifyServlet extends HttpServlet {
         LOG.info("Current speed is " + speed);
 
         if (speed > SPEED_THRESHOLD || userSettings.isTestingAccount()) {
-            onDriving(request, credential, location, speed);
+            onDriving(request, credential, location, speed, userSettings);
         }
     }
 
@@ -172,10 +172,14 @@ public class NotifyServlet extends HttpServlet {
         Location location = new Location();
         location.setLatitude(37.778313);
         location.setLongitude(-122.419333);
-        onDriving(req, credential, location, 0);
+
+        UserSettings userSettings = UserSettings.getUserSettings(userId);
+
+        onDriving(req, credential, location, 0, userSettings);
     }
 
-    protected void onDriving(HttpServletRequest req, Credential credential, Location location, double speed) throws IOException {
+    protected void onDriving(HttpServletRequest req, Credential credential, Location location,
+                             double speed, UserSettings userSettings) throws IOException {
         LOG.info("Driving detected");
 
         List<NearLog> nearestLogs = getNearestLogs(location);
@@ -205,14 +209,18 @@ public class NotifyServlet extends HttpServlet {
         }
 
         List<MenuItem> menuItemList = MirrorClient.getDefaultMenuItems(req);
+        menuItemList.add(0, new MenuItem().setAction("TOGGLE_PINNED"));
         menuItemList.add(0, new MenuItem().setAction("READ_ALOUD"));
 
         TimelineItem timelineItem = new TimelineItem()
                 .setHtml(html.toString())
                 .setSpeakableText(read.toString())
+                .setSpeakableType("Traffic report")
                 .setMenuItems(menuItemList)
                 .setNotification(new NotificationConfig().setLevel("DEFAULT")).setLocation(location);
-        MirrorClient.insertTimelineItem(credential, timelineItem);
+        TimelineItem inserted = MirrorClient.insertTimelineItem(credential, timelineItem);
+
+        userSettings.setLastNotificationId(inserted.getId());
     }
 
     private List<NearLog> getNearestLogs(Location location) throws IOException {

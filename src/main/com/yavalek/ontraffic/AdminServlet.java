@@ -96,7 +96,7 @@ public class AdminServlet extends HttpServlet {
         location.setLatitude(37.778313);
         location.setLongitude(-122.419333);
 
-        new NotifyServlet().onDriving(req, credential, location, 0);
+        new NotifyServlet().onDriving(req, credential, location, 0, userSettings);
     } else {
         message = nop(req);
     }

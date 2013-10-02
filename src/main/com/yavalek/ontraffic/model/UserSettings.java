@@ -18,6 +18,9 @@ public class UserSettings {
     @Persistent
     private boolean testingAccount = false;
 
+    @Persistent
+    private String lastNotificationId = null;
+
     public UserSettings() {
     }
 
@@ -63,5 +66,13 @@ public class UserSettings {
         } finally {
             pm.close();
         }
+    }
+
+    public String getLastNotificationId() {
+        return lastNotificationId;
+    }
+
+    public void setLastNotificationId(String lastNotificationId) {
+        this.lastNotificationId = lastNotificationId;
     }
 }
