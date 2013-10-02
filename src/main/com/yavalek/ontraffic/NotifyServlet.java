@@ -1,33 +1,24 @@
 package com.yavalek.ontraffic;
 
 import com.google.api.client.auth.oauth2.Credential;
+import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson.JacksonFactory;
 import com.google.api.services.mirror.Mirror;
-import com.google.api.services.mirror.model.Location;
-import com.google.api.services.mirror.model.MenuItem;
-import com.google.api.services.mirror.model.Notification;
-import com.google.api.services.mirror.model.NotificationConfig;
-import com.google.api.services.mirror.model.TimelineItem;
-import com.google.api.services.mirror.model.UserAction;
+import com.google.api.services.mirror.model.*;
+import com.google.gson.Gson;
 import com.yavalek.ontraffic.model.LogRecord;
 import com.yavalek.ontraffic.model.NearLog;
 import com.yavalek.ontraffic.model.UserLastLocation;
 import com.yavalek.ontraffic.model.UserSettings;
 import com.yavalek.ontraffic.model.mapquest.Incident;
 import com.yavalek.ontraffic.model.mapquest.TrafficResponse;
-import com.google.gson.Gson;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
-import java.io.Writer;
+import java.io.*;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
@@ -164,29 +155,11 @@ public class NotifyServlet extends HttpServlet {
         }
     }
 
-    @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        String userId = AuthUtil.getUserId(req);
-        Credential credential = AuthUtil.newAuthorizationCodeFlow().loadCredential(userId);
-
-        Location location = new Location();
-        location.setLatitude(37.778313);
-        location.setLongitude(-122.419333);
-
-        UserSettings userSettings = UserSettings.getUserSettings(userId);
-
-        onDriving(req, credential, location, 0, userSettings);
-    }
-
     protected void onDriving(HttpServletRequest req, Credential credential, Location location,
                              double speed, UserSettings userSettings) throws IOException {
         LOG.info("Driving detected");
 
         List<NearLog> nearestLogs = getNearestLogs(location);
-        if (nearestLogs.isEmpty()) {
-            LOG.info("There is nothing to notify about, exiting");
-            return;
-        }
 
         StringBuilder read = new StringBuilder();
         StringBuilder html = new StringBuilder();
@@ -198,6 +171,26 @@ public class NotifyServlet extends HttpServlet {
                 .append("</footer>")
                 .append("</article>");
 
+        populateSpeakableText(nearestLogs, read);
+
+        List<MenuItem> menuItemList = MirrorClient.getDefaultMenuItems(req);
+        menuItemList.add(0, new MenuItem().setAction("READ_ALOUD"));
+
+        TimelineItem timelineItem = new TimelineItem()
+                .setHtml(html.toString())
+                .setSpeakableText(read.toString())
+                .setSpeakableType("Traffic report")
+                .setMenuItems(menuItemList)
+                .setNotification(new NotificationConfig().setLevel("DEFAULT"))
+                .setLocation(location);
+        insertOrUpdate(credential, userSettings, timelineItem);
+    }
+
+    private void populateSpeakableText(List<NearLog> nearestLogs, StringBuilder read) {
+        if (nearestLogs.isEmpty()) {
+            read.append("Traffic seems to be usual.");
+            return;
+        }
         for (NearLog logRecord : nearestLogs) {
             float miles = toMiles(logRecord.getDistance());
             String desc = logRecord.getLogRecord().getLocationDesc();
@@ -207,20 +200,24 @@ public class NotifyServlet extends HttpServlet {
                     .append(desc)
                     .append(";");
         }
+    }
 
-        List<MenuItem> menuItemList = MirrorClient.getDefaultMenuItems(req);
-        menuItemList.add(0, new MenuItem().setAction("TOGGLE_PINNED"));
-        menuItemList.add(0, new MenuItem().setAction("READ_ALOUD"));
+    private void insertOrUpdate(Credential credential, UserSettings userSettings, TimelineItem timelineItem) throws IOException {
+        if (userSettings.getLastNotificationId() == null) {
+            TimelineItem inserted = MirrorClient.insertTimelineItem(credential, timelineItem);
+            userSettings.setLastNotificationId(inserted.getId());
+            Database.persist(userSettings);
+        } else {
+            try {
+                MirrorClient.updateTimelineItem(credential, userSettings.getLastNotificationId(), timelineItem);
+            } catch (GoogleJsonResponseException e) {
+                LOG.info("Card seems to be deleted, inserting a new one");
 
-        TimelineItem timelineItem = new TimelineItem()
-                .setHtml(html.toString())
-                .setSpeakableText(read.toString())
-                .setSpeakableType("Traffic report")
-                .setMenuItems(menuItemList)
-                .setNotification(new NotificationConfig().setLevel("DEFAULT")).setLocation(location);
-        TimelineItem inserted = MirrorClient.insertTimelineItem(credential, timelineItem);
-
-        userSettings.setLastNotificationId(inserted.getId());
+                TimelineItem inserted = MirrorClient.insertTimelineItem(credential, timelineItem);
+                userSettings.setLastNotificationId(inserted.getId());
+                Database.persist(userSettings);
+            }
+        }
     }
 
     private List<NearLog> getNearestLogs(Location location) throws IOException {
@@ -264,7 +261,7 @@ public class NotifyServlet extends HttpServlet {
             return result;
         }
 
-        return result.subList(0, Math.min(MAX_NEARBY_LOGS, result.size()) - 1);
+        return result.subList(0, Math.min(MAX_NEARBY_LOGS, result.size()));
     }
 
     private String toStr(GeoLocation bound) {

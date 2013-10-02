@@ -32,7 +32,7 @@ import java.util.logging.Logger;
 
 /**
  * A facade for easier access to basic API operations
- * 
+ *
  * @author Jenny Murphy - http://google.com/+JennyMurphy
  */
 public class MirrorClient {
@@ -148,7 +148,7 @@ public class MirrorClient {
 
   /**
    * Inserts a simple timeline item.
-   * 
+   *
    * @param credential the user's credential
    * @param item the item to insert
    */
@@ -176,7 +176,7 @@ public class MirrorClient {
 
     /**
    * Inserts an item with an attachment provided as a byte array.
-   * 
+   *
    * @param credential the user's credential
    * @param item the item to insert
    * @param attachmentContentType the MIME type of the attachment (or null if
@@ -192,7 +192,7 @@ public class MirrorClient {
 
   /**
    * Inserts an item with an attachment provided as an input stream.
-   * 
+   *
    * @param credential the user's credential
    * @param item the item to insert
    * @param attachmentContentType the MIME type of the attachment (or null if
@@ -223,4 +223,8 @@ public class MirrorClient {
     Attachment attachmentMetadata = attachments.get(timelineItemId, attachmentId).execute();
     return attachmentMetadata.getContentType();
   }
+
+    public static TimelineItem updateTimelineItem(Credential credential, String id, TimelineItem item) throws IOException {
+        return getMirror(credential).timeline().update(id, item).execute();
+    }
 }

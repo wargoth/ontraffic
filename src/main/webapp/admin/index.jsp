@@ -143,13 +143,6 @@
             </form>
             </p>
             <hr>
-            <p>
-
-            <form action="<%= pageUrl %>" method="post">
-                <input type="hidden" name="operation" value="insertItemAllUsers">
-                <button class="btn btn-default" type="submit">A card to all users</button>
-            </form>
-            </p>
 
             <p>
 
