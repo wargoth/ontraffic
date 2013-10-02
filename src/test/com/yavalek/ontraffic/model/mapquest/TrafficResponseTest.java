@@ -2,6 +2,7 @@ package com.yavalek.ontraffic.model.mapquest;
 
 
 import com.google.gson.Gson;
+import com.yavalek.ontraffic.MapquestProvider;
 import org.junit.Test;
 
 import static junit.framework.Assert.assertEquals;
@@ -20,11 +21,11 @@ public class TrafficResponseTest {
                 "\"imageAltText\":\"© 2013 MapQuest, Inc.\"},\"statuscode\":0,\"messages\":[]}}";
 
         Gson gson = new Gson();
-        TrafficResponse trafficResponse = gson.fromJson(data, TrafficResponse.class);
+        MapquestProvider.TrafficResponse trafficResponse = gson.fromJson(data, MapquestProvider.TrafficResponse.class);
 
         assertEquals(1, trafficResponse.incidents.size());
 
-        Incident incident = trafficResponse.incidents.get(0);
+        MapquestProvider.Incident incident = trafficResponse.incidents.get(0);
         assertEquals(37.759046, incident.lat);
         assertEquals(-122.448469, incident.lng);
         assertEquals("Parking restrictions in force due to construction on Clarendon Avenue both ways between " +

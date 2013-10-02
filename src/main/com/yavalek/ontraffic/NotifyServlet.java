@@ -5,24 +5,25 @@ import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson.JacksonFactory;
 import com.google.api.services.mirror.Mirror;
-import com.google.api.services.mirror.model.*;
-import com.google.gson.Gson;
-import com.yavalek.ontraffic.model.LogRecord;
+import com.google.api.services.mirror.model.Location;
+import com.google.api.services.mirror.model.MenuItem;
+import com.google.api.services.mirror.model.Notification;
+import com.google.api.services.mirror.model.NotificationConfig;
+import com.google.api.services.mirror.model.TimelineItem;
+import com.google.api.services.mirror.model.UserAction;
 import com.yavalek.ontraffic.model.NearLog;
 import com.yavalek.ontraffic.model.UserLastLocation;
 import com.yavalek.ontraffic.model.UserSettings;
-import com.yavalek.ontraffic.model.mapquest.Incident;
-import com.yavalek.ontraffic.model.mapquest.TrafficResponse;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.*;
-import java.net.URL;
-import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.Collections;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Writer;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -38,8 +39,9 @@ public class NotifyServlet extends HttpServlet {
     public static final int SPEED_THRESHOLD = 20; // in km/h
     public static final int DISTANCE_THRESHOLD = 10; // in km
     public static final int MAX_NEARBY_LOGS = 5;
-    public static final String MAPQUEST_KEY = "Fmjtd%7Cluub2hu1n1%2Crn%3Do5-9utx1f";
     public static final double EARTH_R = 6371.0;
+
+    private TrafficServiceProvider trafficProvider = new BingProvider();
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
@@ -146,7 +148,7 @@ public class NotifyServlet extends HttpServlet {
             return;
         }
 
-        double speed = getSpeedKmph(lastLocation, newLocation);
+        double speed = Utils.getSpeedKmph(lastLocation, newLocation);
 
         LOG.info("Current speed is " + speed);
 
@@ -159,13 +161,13 @@ public class NotifyServlet extends HttpServlet {
                              double speed, UserSettings userSettings) throws IOException {
         LOG.info("Driving detected");
 
-        List<NearLog> nearestLogs = getNearestLogs(location);
+        List<NearLog> nearestLogs = trafficProvider.getNearestLogs(location);
 
         StringBuilder read = new StringBuilder();
         StringBuilder html = new StringBuilder();
 
         html.append("<article class=\"photo\" style=\"left: 0px; visibility: visible;\">");
-        html.append("<img src=\"").append(getMapLink(location, nearestLogs, req)).append("\" width=\"100%\" height=\"100%\">");
+        html.append("<img src=\"").append(trafficProvider.getMapLink(location, nearestLogs, req)).append("\" width=\"100%\" height=\"100%\">");
         html.append("<footer>")
                 .append("<p>on-traffic</p>")
                 .append("</footer>")
@@ -192,7 +194,7 @@ public class NotifyServlet extends HttpServlet {
             return;
         }
         for (NearLog logRecord : nearestLogs) {
-            float miles = toMiles(logRecord.getDistance());
+            float miles = Utils.toMiles(logRecord.getDistance());
             String desc = logRecord.getLogRecord().getLocationDesc();
 
             read.append(miles)
@@ -218,116 +220,5 @@ public class NotifyServlet extends HttpServlet {
                 Database.persist(userSettings);
             }
         }
-    }
-
-    private List<NearLog> getNearestLogs(Location location) throws IOException {
-        GeoLocation loc = GeoLocation.fromDegrees(location.getLatitude(), location.getLongitude());
-
-        GeoLocation[] bounds = loc.boundingCoordinates(DISTANCE_THRESHOLD, EARTH_R);
-
-        StringBuilder req = new StringBuilder();
-        req.append("http://www.mapquestapi.com/traffic/v2/incidents?key=")
-                .append(MAPQUEST_KEY)
-                .append("&boundingBox=").append(toStr(bounds[0])).append(",").append(toStr(bounds[1]))
-                .append("&filters=construction,incidents")
-                .append("&inFormat=kvp&outFormat=json");
-
-        LOG.info("Requesting traffic information from: " + req);
-
-        URL url = new URL(req.toString());
-        Gson gson = new Gson();
-
-        TrafficResponse response = gson.fromJson(new InputStreamReader(url.openStream()), TrafficResponse.class);
-
-        List<NearLog> result = new ArrayList<>();
-
-        for (Incident incident : response.incidents) {
-            NearLog nearLog = new NearLog();
-            LogRecord logRecord = new LogRecord();
-
-            nearLog.setLogRecord(logRecord);
-            nearLog.setDistance(toMiles(getDistance(incident.lat, incident.lng, location.getLatitude(), location.getLongitude())));
-
-            logRecord.setLat(incident.lat);
-            logRecord.setLon(incident.lng);
-            logRecord.setLocationDesc(incident.fullDesc);
-
-            result.add(nearLog);
-        }
-
-        Collections.sort(result);
-
-        if (result.isEmpty()) {
-            return result;
-        }
-
-        return result.subList(0, Math.min(MAX_NEARBY_LOGS, result.size()));
-    }
-
-    private String toStr(GeoLocation bound) {
-        return bound.getLatitudeInDegrees() + "," + bound.getLongitudeInDegrees();
-    }
-
-    private int toMPH(double kmph) {
-        return (int) (kmph / 1.60934);
-    }
-
-    private float toMiles(double km) {
-        return Math.round(km * 10f / 1.60934f) / 10f;
-    }
-
-    static double getSpeedKmph(UserLastLocation a, UserLastLocation b) {
-        double distance = getDistanceKm(a, b);
-        double hours = Math.abs(a.getDate().getTime() - b.getDate().getTime()) / 1000.0 / 3600.0;
-
-        return distance / hours;
-    }
-
-    static double getDistanceKm(UserLastLocation a, UserLastLocation b) {
-        return getDistance(a.getLat(), a.getLon(), b.getLat(), b.getLon());
-    }
-
-    private static double getDistance(double aLat, double aLon, double bLat, double bLon) {
-        GeoLocation a = GeoLocation.fromDegrees(aLat, aLon);
-        GeoLocation b = GeoLocation.fromDegrees(bLat, bLon);
-        return a.distanceTo(b, EARTH_R);
-    }
-
-    public StringBuilder getMapLink(Location location, List<NearLog> nearestLogs, HttpServletRequest reqest) throws UnsupportedEncodingException {
-        StringBuilder result = new StringBuilder();
-        result.append("http://www.mapquestapi.com/staticmap/v4/getmap")
-                .append("?size=640,360")
-                .append("&type=map")
-                .append("&pois=pcenter,").append(toStr(location));
-
-        if (!nearestLogs.isEmpty()) {
-            result.append("&xis=").append(WebUtil.buildUrl(reqest, "/static/images/transparent.png")).append(",").append(nearestLogs.size());
-
-            for (NearLog log : nearestLogs) {
-                LogRecord rec = log.getLogRecord();
-                result.append(",,").append(toStr(rec)).append(",,,,");
-            }
-        } else {
-            result.append("&center=").append(toStr(location))
-                    .append("&zoom=13");
-        }
-
-        result.append("&imagetype=png")
-                .append("&traffic=1&scalebar=false")
-                .append("&key=").append(MAPQUEST_KEY);
-
-        return result;
-    }
-
-    private String toStr(LogRecord rec) {
-        return rec.getLat() + "," + rec.getLon();
-    }
-
-    private String encode(String s) throws UnsupportedEncodingException {
-        return URLEncoder.encode(s, "UTF-8");
-    }
-
-    private String toStr(Location location) {
-        return location.getLatitude() + "," + location.getLongitude();
     }
 }

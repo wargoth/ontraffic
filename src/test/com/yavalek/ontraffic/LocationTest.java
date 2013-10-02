@@ -1,7 +1,6 @@
 package com.yavalek.ontraffic;
 
 import com.yavalek.ontraffic.model.UserLastLocation;
-import com.yavalek.ontraffic.NotifyServlet;
 import org.junit.Test;
 
 import java.util.Calendar;
@@ -10,7 +9,7 @@ import java.util.Date;
 public class LocationTest {
     @Test
     public void testGetDistance() {
-        double distance = NotifyServlet.getDistanceKm(getA(), getB());
+        double distance = Utils.getDistanceKm(getA(), getB());
         System.out.println(distance);
     }
 
@@ -34,7 +33,7 @@ public class LocationTest {
 
     @Test
     public void testSpeedKmph() throws Exception {
-        double speedKmph = NotifyServlet.getSpeedKmph(getA(), getB());
+        double speedKmph = Utils.getSpeedKmph(getA(), getB());
         System.out.println(speedKmph);
     }
 }
