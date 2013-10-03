@@ -146,15 +146,9 @@
 
             <p>
             <form action="<%= pageUrl %>" method="post">
-                <input type="hidden" name="operation" value="insertOntrafficSF">
-                <button class="btn" type="submit">Send SF ontraffic card</button>
-            </form>
-            </p>
-
-            <p>
-            <form action="<%= pageUrl %>" method="post">
-                <input type="hidden" name="operation" value="insertOntrafficLondon">
-                <button class="btn" type="submit">Send London ontraffic card</button>
+                <input type="hidden" name="operation" value="insertOntraffic">
+                <input type="text" name="latlon" value="">
+                <button class="btn" type="submit">Send ontraffic card</button>
             </form>
             </p>
 

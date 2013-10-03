@@ -20,6 +20,10 @@ public class Utils {
         return Math.round(km * 10f / 1.60934f) / 10f;
     }
 
+    public static float toKm(double km) {
+        return Math.round(km * 10f) / 10f;
+    }
+
     public static double getDistance(double aLat, double aLon, double bLat, double bLon) {
         GeoLocation a = GeoLocation.fromDegrees(aLat, aLon);
         GeoLocation b = GeoLocation.fromDegrees(bLat, bLon);

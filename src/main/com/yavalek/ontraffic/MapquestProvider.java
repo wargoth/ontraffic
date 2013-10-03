@@ -35,7 +35,7 @@ public class MapquestProvider implements TrafficServiceProvider {
             }
         } else {
             result.append("&center=").append(Utils.toStr(location))
-                    .append("&zoom=13");
+                    .append("&zoom=11");
         }
 
         result.append("&imagetype=png")

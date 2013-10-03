@@ -5,12 +5,7 @@ import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson.JacksonFactory;
 import com.google.api.services.mirror.Mirror;
-import com.google.api.services.mirror.model.Location;
-import com.google.api.services.mirror.model.MenuItem;
-import com.google.api.services.mirror.model.Notification;
-import com.google.api.services.mirror.model.NotificationConfig;
-import com.google.api.services.mirror.model.TimelineItem;
-import com.google.api.services.mirror.model.UserAction;
+import com.google.api.services.mirror.model.*;
 import com.yavalek.ontraffic.model.NearLog;
 import com.yavalek.ontraffic.model.UserLastLocation;
 import com.yavalek.ontraffic.model.UserSettings;
@@ -19,11 +14,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Writer;
+import java.io.*;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -174,7 +165,7 @@ public class NotifyServlet extends HttpServlet {
                 .append("</footer>")
                 .append("</article>");
 
-        populateSpeakableText(nearestLogs, read);
+        populateSpeakableText(nearestLogs, read, location);
 
         List<MenuItem> menuItemList = MirrorClient.getDefaultMenuItems(req);
         menuItemList.add(0, new MenuItem().setAction("READ_ALOUD"));
@@ -192,6 +183,7 @@ public class NotifyServlet extends HttpServlet {
     private TrafficServiceProvider getProvider(Location location) {
         try {
             String country = BingProvider.getCountry(location);
+            location.setAddress(country);
             if (country.equalsIgnoreCase("United States") || country.equalsIgnoreCase("Canada"))
                 return new MapquestProvider();
         } catch (IOException e) {
@@ -201,20 +193,34 @@ public class NotifyServlet extends HttpServlet {
         return new BingProvider();
     }
 
-    private void populateSpeakableText(List<NearLog> nearestLogs, StringBuilder read) {
+    private void populateSpeakableText(List<NearLog> nearestLogs, StringBuilder read, Location location) {
         if (nearestLogs.isEmpty()) {
             read.append("Traffic seems to be usual.");
             return;
         }
         for (NearLog logRecord : nearestLogs) {
-            float miles = Utils.toMiles(logRecord.getDistance());
-            String desc = logRecord.getLogRecord().getLocationDesc();
+            if (isImperial(location)) {
+                float miles = Utils.toMiles(logRecord.getDistance());
+                String desc = logRecord.getLogRecord().getLocationDesc();
 
-            read.append(miles)
-                    .append(" miles away: ")
-                    .append(desc)
-                    .append(";");
+                read.append(miles)
+                        .append(" miles away: ")
+                        .append(desc)
+                        .append(";");
+            } else {
+                float km = Utils.toKm(logRecord.getDistance());
+                String desc = logRecord.getLogRecord().getLocationDesc();
+
+                read.append(km)
+                        .append(" kilometers away: ")
+                        .append(desc)
+                        .append(";");            }
         }
+    }
+
+    private boolean isImperial(Location location) {
+        return location.getAddress().equalsIgnoreCase("United States")
+                || location.getAddress().equalsIgnoreCase("United Kingdom");
     }
 
     private void insertOrUpdate(Credential credential, UserSettings userSettings, TimelineItem timelineItem) throws IOException {

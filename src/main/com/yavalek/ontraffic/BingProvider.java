@@ -77,8 +77,7 @@ public class BingProvider implements TrafficServiceProvider {
         req.append("http://dev.virtualearth.net/REST/v1/Traffic/Incidents/")
                 .append(Utils.toStr(bounds[0])).append(",").append(Utils.toStr(bounds[1]))
                 .append("?key=").append(BING_KEY)
-                .append("&severity=3,4")
-                .append("&type=1,2,3,8,9,10,11");
+                .append("&severity=3,4");
 
         LOG.info("Requesting traffic information from: " + req);
 
@@ -134,51 +133,7 @@ public class BingProvider implements TrafficServiceProvider {
         public int type;
 
         public String getFullDescription() {
-            StringBuilder builder = new StringBuilder();
-
-            switch (type) {
-                case 1: // Accident
-                    builder.append("Accident");
-                    break;
-
-                case 2: // Congestion
-                    builder.append("Congestion");
-                    break;
-
-                case 3: // DisabledVehicle
-                    builder.append("Stalled vehicle");
-                    break;
-
-                case 4: // MassTransit
-                    break;
-
-                case 5: // Miscellaneous
-                    break;
-
-                case 6: // OtherNews
-                    break;
-
-                case 7: // PlannedEvent
-                    builder.append("Planned Event");
-                    break;
-
-                case 8: // RoadHazard
-                    builder.append("Road Hazard");
-                    break;
-
-                case 9: // Construction
-                    break;
-
-                case 10: // Alert
-                    builder.append("Alert");
-                    break;
-
-                case 11: // Weather
-                    builder.append("Weather alert");
-                    break;
-            }
-
-            return builder.append(" ").append(description).toString();
+            return description;
         }
     }
 
